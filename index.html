@@ -116,7 +116,7 @@
       justify-content:center;
       gap:8px;
       padding:10px;
-      width:min(95vw,1250px);
+      width:min(95vw,1200px);
       border-radius:16px;
       background:var(--panel);
       backdrop-filter:blur(8px);
@@ -425,7 +425,7 @@
         <img src="logo-ups.png" alt="Logo UPS">
         <div>
           <h1>Visor 3D Profesional de Chasis</h1>
-          <p>Movimiento tipo Sketchfab · cubo tipo Inventor · AR integrada</p>
+          <p>Movimiento estable · cubo tipo Inventor · AR integrada</p>
         </div>
       </div>
     </div>
@@ -491,10 +491,10 @@
     </div>
 
     <div class="status">
-      Web tipo Sketchfab:<br>
-      • arrastrar = orbitar<br>
+      Movimiento corregido:<br>
+      • arrastrar = orbitar estable<br>
       • Shift + arrastrar = panear<br>
-      • rueda = zoom al cursor<br>
+      • rueda = zoom controlado<br>
       • doble clic = enfocar<br>
       • móvil: 1 dedo rota, 2 dedos zoom/pan
     </div>
@@ -510,7 +510,6 @@
     let modelCenter = BABYLON.Vector3.Zero();
     let modelRadius = 1;
     let selectedMesh = null;
-    let selectedOriginalMaterial = null;
     let highlightLayer = null;
 
     const cubeFrontFace = document.getElementById("cubeFrontFace");
@@ -673,31 +672,24 @@
 
       camera.attachControl(canvas, true);
 
-      // Movimiento más tipo Sketchfab
-      camera.inertia = 0.75;
-      camera.angularSensibilityX = 2200;
-      camera.angularSensibilityY = 2200;
-      camera.panningSensibility = 90;
-      camera.wheelDeltaPercentage = 0.01;
-      camera.pinchDeltaPercentage = 0.01;
-
-      camera.lowerRadiusLimit = 0.1;
-      camera.upperRadiusLimit = 100000;
-      camera.lowerBetaLimit = 0.001;
-      camera.upperBetaLimit = Math.PI - 0.001;
-
+      // Sensibilidad más baja y estable
+      camera.inertia = 0;
+      camera.angularSensibilityX = 4200;
+      camera.angularSensibilityY = 4200;
+      camera.panningSensibility = 180;
+      camera.wheelDeltaPercentage = 0.004;
+      camera.pinchDeltaPercentage = 0.004;
+      camera.lowerRadiusLimit = 0.3;
+      camera.upperRadiusLimit = 500;
+      camera.lowerBetaLimit = 0.03;
+      camera.upperBetaLimit = Math.PI - 0.03;
       camera.useAutoRotationBehavior = false;
       camera.useBouncingBehavior = false;
-      camera.allowUpsideDown = true;
+      camera.allowUpsideDown = false;
       camera.panningAxis = new BABYLON.Vector3(1, 1, 1);
 
-      // Zoom hacia el cursor, si la versión de Babylon lo soporta
-      if ("zoomToMouseLocation" in camera) {
-        camera.zoomToMouseLocation = true;
-      }
-
       if (camera.inputs?.attached?.pointers) {
-        camera.inputs.attached.pointers.pinchPrecision = 80;
+        camera.inputs.attached.pointers.pinchPrecision = 200;
         camera.inputs.attached.pointers.multiTouchPanAndZoom = true;
         camera.inputs.attached.pointers.buttons = [0, 1, 2];
       }
@@ -811,8 +803,6 @@
       clearSelection();
 
       selectedMesh = mesh;
-      selectedOriginalMaterial = mesh.material || null;
-
       if (highlightLayer) {
         highlightLayer.addMesh(mesh, BABYLON.Color3.FromHexString("#f7c948"));
       }
@@ -823,33 +813,14 @@
         highlightLayer.removeMesh(selectedMesh);
       }
       selectedMesh = null;
-      selectedOriginalMaterial = null;
     }
 
     function focusOnPoint(point) {
-      const startTarget = camera.target.clone();
-      const endTarget = point.clone();
-
-      BABYLON.Animation.CreateAndStartAnimation(
-        "focusTarget",
-        camera,
-        "target",
-        60,
-        18,
-        startTarget,
-        endTarget,
-        0
-      );
-
-      BABYLON.Animation.CreateAndStartAnimation(
-        "focusRadius",
-        camera,
-        "radius",
-        60,
-        18,
-        camera.radius,
-        Math.max(camera.radius * 0.85, modelRadius * 0.4),
-        0
+      animateCamera(
+        camera.alpha,
+        camera.beta,
+        Math.max(camera.radius * 0.85, modelRadius * 0.6),
+        point
       );
     }
 
@@ -882,11 +853,20 @@
 
     function animateCamera(alpha, beta, radius, target = null) {
       const finalTarget = target ? target.clone() : modelCenter.clone();
+      const safeRadius = Math.min(Math.max(radius, 0.5), 120);
 
-      BABYLON.Animation.CreateAndStartAnimation("camAlpha", camera, "alpha", 60, 18, camera.alpha, alpha, 0);
-      BABYLON.Animation.CreateAndStartAnimation("camBeta", camera, "beta", 60, 18, camera.beta, beta, 0);
-      BABYLON.Animation.CreateAndStartAnimation("camRadius", camera, "radius", 60, 18, camera.radius, radius, 0);
-      BABYLON.Animation.CreateAndStartAnimation("camTarget", camera, "target", 60, 18, camera.target.clone(), finalTarget, 0);
+      BABYLON.Animation.CreateAndStartAnimation(
+        "camAlpha", camera, "alpha", 60, 18, camera.alpha, alpha, 0
+      );
+      BABYLON.Animation.CreateAndStartAnimation(
+        "camBeta", camera, "beta", 60, 18, camera.beta, beta, 0
+      );
+      BABYLON.Animation.CreateAndStartAnimation(
+        "camRadius", camera, "radius", 60, 18, camera.radius, safeRadius, 0
+      );
+      BABYLON.Animation.CreateAndStartAnimation(
+        "camTarget", camera, "target", 60, 18, camera.target.clone(), finalTarget, 0
+      );
     }
 
     function goFaces(faces){
@@ -906,10 +886,10 @@
       const alpha = Math.atan2(v.x, v.z);
       const beta = Math.acos(BABYLON.Scalar.Clamp(v.y, -1, 1));
 
-      let mult = 3.0;
-      if (faces.length === 1) mult = 2.6;
-      if (faces.length === 2) mult = 2.8;
-      if (faces.length === 3) mult = 3.0;
+      let mult = 2.4;
+      if (faces.length === 1) mult = 2.0;
+      if (faces.length === 2) mult = 2.2;
+      if (faces.length === 3) mult = 2.4;
 
       animateCamera(alpha, beta, modelRadius * mult);
     }
@@ -919,12 +899,17 @@
       animateCamera(
         BABYLON.Tools.ToRadians(45),
         BABYLON.Tools.ToRadians(60),
-        modelRadius * 3.2
+        Math.max(modelRadius * 2.2, 8)
       );
     }
 
     function zoomFar() {
-      animateCamera(camera.alpha, camera.beta, modelRadius * 7.5, camera.target.clone());
+      animateCamera(
+        camera.alpha,
+        camera.beta,
+        Math.min(modelRadius * 3.5, 120),
+        camera.target.clone()
+      );
     }
 
     function axisView(axis) {
