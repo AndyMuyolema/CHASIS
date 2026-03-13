@@ -1,945 +1,330 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Visor 3D Profesional de Chasis</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <script src="https://cdn.babylonjs.com/babylon.js"></script>
-  <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
-  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+<title>Visor 3D Chasis UPS</title>
 
-  <style>
-    :root{
-      --bg1:#020617;
-      --bg2:#0f172a;
-      --panel:#0b1220dd;
-      --text:#e5eefc;
-      --muted:#9fb3d1;
-      --btn:#1e293b;
-      --btn-hover:#334155;
+<script src="https://cdn.babylonjs.com/babylon.js"></script>
+<script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
 
-      --cube-front:#d8e6f7;
-      --cube-top:#bcd3ea;
-      --cube-right:#a8bfd9;
-      --cube-border:#8196ad;
-      --cube-text:#18324f;
+<script type="module"
+src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
-      --hot:#d6a048;
-      --hot-border:#946b22;
-    }
+<style>
 
-    *{ box-sizing:border-box; }
+body{
+margin:0;
+overflow:hidden;
+font-family:Arial;
+background:#020617;
+color:white;
+}
 
-    html,body{
-      width:100%;
-      height:100%;
-      margin:0;
-      overflow:hidden;
-      font-family:Arial, Helvetica, sans-serif;
-      background:linear-gradient(180deg,var(--bg2),var(--bg1));
-      color:var(--text);
-    }
+#renderCanvas{
+width:100vw;
+height:100vh;
+display:block;
+touch-action:none;
+}
 
-    #app{
-      position:relative;
-      width:100%;
-      height:100%;
-    }
+.topbar{
+position:absolute;
+top:0;
+left:0;
+right:0;
+height:60px;
+display:flex;
+align-items:center;
+gap:10px;
+padding-left:20px;
+background:#0f172a;
+z-index:10;
+}
 
-    #renderCanvas{
-      width:100%;
-      height:100%;
-      display:block;
-      touch-action:none;
-      background:#030712;
-      outline:none;
-      cursor:grab;
-    }
+.topbar img{
+height:40px;
+}
 
-    #renderCanvas:active{
-      cursor:grabbing;
-    }
+.panel{
+position:absolute;
+bottom:15px;
+left:50%;
+transform:translateX(-50%);
+display:flex;
+gap:10px;
+background:#0f172acc;
+padding:10px;
+border-radius:10px;
+}
 
-    .topbar{
-      position:absolute;
-      top:0;
-      left:0;
-      right:0;
-      z-index:40;
-      display:flex;
-      align-items:center;
-      gap:12px;
-      padding:10px 14px;
-      background:linear-gradient(180deg,#0b1630ee,#0b1630cc);
-      border-bottom:1px solid #1e293b;
-      backdrop-filter:blur(8px);
-    }
+button{
+padding:8px 14px;
+background:#1e293b;
+color:white;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
 
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      min-width:0;
-    }
+button:hover{
+background:#334155;
+}
 
-    .brand img{
-      width:44px;
-      height:44px;
-      object-fit:contain;
-      border-radius:10px;
-      background:#fff;
-      padding:4px;
-      border:1px solid #cbd5e1;
-    }
+.loader{
+position:absolute;
+top:0;
+left:0;
+right:0;
+bottom:0;
+display:flex;
+align-items:center;
+justify-content:center;
+background:#020617;
+font-size:20px;
+}
 
-    .brand h1{
-      margin:0;
-      font-size:20px;
-      line-height:1.1;
-    }
-
-    .brand p{
-      margin:4px 0 0;
-      font-size:12px;
-      color:var(--muted);
-    }
-
-    .panel{
-      position:absolute;
-      left:50%;
-      transform:translateX(-50%);
-      bottom:16px;
-      z-index:30;
-      display:flex;
-      flex-wrap:wrap;
-      justify-content:center;
-      gap:8px;
-      padding:10px;
-      width:min(95vw,1200px);
-      border-radius:16px;
-      background:var(--panel);
-      backdrop-filter:blur(8px);
-    }
-
-    button{
-      border:none;
-      border-radius:10px;
-      padding:10px 14px;
-      background:var(--btn);
-      color:white;
-      cursor:pointer;
-      font-size:14px;
-      border:1px solid #334155;
-    }
-
-    button:hover{
-      background:var(--btn-hover);
-    }
-
-    .axes{
-      position:absolute;
-      left:14px;
-      bottom:16px;
-      z-index:30;
-      display:grid;
-      grid-template-columns:repeat(2,1fr);
-      gap:8px;
-      padding:10px;
-      width:112px;
-      border-radius:14px;
-      background:var(--panel);
-      backdrop-filter:blur(8px);
-    }
-
-    .axes-title{
-      grid-column:1 / -1;
-      text-align:center;
-      font-size:12px;
-      color:var(--muted);
-    }
-
-    .axis-x{ background:#7f1d1d; }
-    .axis-xn{ background:#991b1b; }
-    .axis-y{ background:#14532d; }
-    .axis-yn{ background:#166534; }
-    .axis-z{ background:#1d4ed8; }
-    .axis-zn{ background:#1e40af; }
-
-    .status{
-      position:absolute;
-      right:14px;
-      bottom:16px;
-      z-index:30;
-      max-width:320px;
-      padding:10px 12px;
-      border-radius:14px;
-      background:var(--panel);
-      color:var(--muted);
-      font-size:12px;
-      line-height:1.45;
-      backdrop-filter:blur(8px);
-    }
-
-    .navcube-widget{
-      position:absolute;
-      top:78px;
-      right:14px;
-      z-index:35;
-      width:250px;
-      height:290px;
-      padding:10px;
-      border-radius:14px;
-      background:var(--panel);
-      backdrop-filter:blur(8px);
-      user-select:none;
-    }
-
-    .navcube-title{
-      text-align:center;
-      font-size:12px;
-      color:var(--muted);
-      margin-bottom:8px;
-    }
-
-    .navcube{
-      position:relative;
-      width:180px;
-      height:180px;
-      margin:0 auto;
-      transform-origin:center center;
-      transition:transform .08s linear;
-    }
-
-    .cube-front{
-      position:absolute;
-      left:52px;
-      top:56px;
-      width:72px;
-      height:72px;
-      background:var(--cube-front);
-      border:1px solid var(--cube-border);
-      box-shadow:0 4px 8px rgba(0,0,0,.18);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      color:var(--cube-text);
-      font-weight:700;
-      font-size:14px;
-      text-transform:uppercase;
-      cursor:pointer;
-    }
-
-    .cube-top{
-      position:absolute;
-      left:64px;
-      top:38px;
-      width:72px;
-      height:20px;
-      background:var(--cube-top);
-      border:1px solid var(--cube-border);
-      transform:skewX(-35deg);
-      transform-origin:left bottom;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      color:var(--cube-text);
-      font-size:10px;
-      font-weight:700;
-      text-transform:uppercase;
-      cursor:pointer;
-    }
-
-    .cube-right{
-      position:absolute;
-      left:124px;
-      top:49px;
-      width:22px;
-      height:72px;
-      background:var(--cube-right);
-      border:1px solid var(--cube-border);
-      transform:skewY(-35deg);
-      transform-origin:left top;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      color:var(--cube-text);
-      font-size:10px;
-      font-weight:700;
-      writing-mode:vertical-rl;
-      text-transform:uppercase;
-      cursor:pointer;
-    }
-
-    .hot{
-      position:absolute;
-      background:transparent;
-      border:none;
-      padding:0;
-      margin:0;
-      cursor:pointer;
-    }
-
-    .tri{
-      width:0;
-      height:0;
-      display:block;
-      border-style:solid;
-      filter:drop-shadow(0 1px 1px rgba(0,0,0,.35));
-    }
-
-    .hot-top{
-      left:82px;
-      top:18px;
-      width:18px;
-      height:18px;
-    }
-
-    .hot-top .tri{
-      border-width:0 9px 12px 9px;
-      border-color:transparent transparent var(--hot) transparent;
-    }
-
-    .hot-bottom{
-      left:82px;
-      top:132px;
-      width:18px;
-      height:18px;
-    }
-
-    .hot-bottom .tri{
-      border-width:12px 9px 0 9px;
-      border-color:var(--hot) transparent transparent transparent;
-    }
-
-    .hot-left{
-      left:22px;
-      top:84px;
-      width:18px;
-      height:18px;
-    }
-
-    .hot-left .tri{
-      border-width:9px 12px 9px 0;
-      border-color:transparent var(--hot) transparent transparent;
-    }
-
-    .hot-right{
-      left:140px;
-      top:84px;
-      width:18px;
-      height:18px;
-    }
-
-    .hot-right .tri{
-      border-width:9px 0 9px 12px;
-      border-color:transparent transparent transparent var(--hot);
-    }
-
-    .hot-corner{
-      width:16px;
-      height:16px;
-      border-radius:50%;
-      background:var(--hot);
-      border:1px solid var(--hot-border);
-      box-shadow:0 1px 2px rgba(0,0,0,.35);
-    }
-
-    .hot-tl{ left:30px; top:26px; }
-    .hot-tr{ left:128px; top:26px; }
-    .hot-bl{ left:30px; top:126px; }
-    .hot-br{ left:128px; top:126px; }
-
-    .hot:hover .tri{
-      filter:brightness(1.15) drop-shadow(0 1px 1px rgba(0,0,0,.35));
-    }
-
-    .hot-corner:hover{
-      filter:brightness(1.1);
-      transform:scale(1.08);
-    }
-
-    .navcube-help{
-      text-align:center;
-      font-size:11px;
-      color:var(--muted);
-      margin-top:10px;
-      line-height:1.35;
-    }
-
-    .loader{
-      position:absolute;
-      inset:0;
-      z-index:50;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background:rgba(2,6,23,.85);
-      color:#fff;
-      font-size:18px;
-    }
-
-    #arLauncher{
-      position:absolute;
-      width:1px;
-      height:1px;
-      opacity:0;
-      pointer-events:none;
-    }
-
-    @media (max-width: 900px){
-      .brand h1{ font-size:17px; }
-      .brand img{ width:38px; height:38px; }
-
-      .navcube-widget{
-        width:220px;
-        height:260px;
-        top:72px;
-        right:10px;
-      }
-
-      .navcube{
-        transform-origin:top center;
-        scale:.9;
-      }
-
-      .axes{
-        left:10px;
-        bottom:92px;
-      }
-
-      .status{
-        display:none;
-      }
-
-      .panel{
-        bottom:12px;
-      }
-    }
-  </style>
+</style>
 </head>
+
 <body>
-  <div id="app">
-    <div class="topbar">
-      <div class="brand">
-        <img src="logo-ups.png" alt="Logo UPS">
-        <div>
-          <h1>Visor 3D Profesional de Chasis</h1>
-          <p>Movimiento estable · cubo tipo Inventor · AR integrada</p>
-        </div>
-      </div>
-    </div>
-
-    <canvas id="renderCanvas" tabindex="1"></canvas>
-
-    <model-viewer
-      id="arLauncher"
-      src="chasis.glb"
-      ar
-      ar-modes="scene-viewer webxr quick-look"
-      camera-controls
-      exposure="1"
-      style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;">
-    </model-viewer>
-
-    <div class="navcube-widget">
-      <div class="navcube-title">Cubo 3D de navegación</div>
-
-      <div class="navcube" id="navcube">
-        <div class="cube-top" id="cubeTopFace"></div>
-        <div class="cube-right" id="cubeRightFace"></div>
-        <div class="cube-front" id="cubeFrontFace"></div>
-
-        <button class="hot hot-top" id="hotTop"><span class="tri"></span></button>
-        <button class="hot hot-bottom" id="hotBottom"><span class="tri"></span></button>
-        <button class="hot hot-left" id="hotLeft"><span class="tri"></span></button>
-        <button class="hot hot-right" id="hotRight"><span class="tri"></span></button>
-
-        <button class="hot hot-corner hot-tl" id="hotTL"></button>
-        <button class="hot hot-corner hot-tr" id="hotTR"></button>
-        <button class="hot hot-corner hot-bl" id="hotBL"></button>
-        <button class="hot hot-corner hot-br" id="hotBR"></button>
-      </div>
-
-      <div class="navcube-help">
-        Cara central = vista actual<br>
-        Flechas = combinación de 2 caras<br>
-        Esquinas = combinación de 3 caras
-      </div>
-    </div>
-
-    <div class="axes">
-      <div class="axes-title">Ejes</div>
-      <button class="axis-x" onclick="axisView('x')">X</button>
-      <button class="axis-xn" onclick="axisView('-x')">-X</button>
-      <button class="axis-y" onclick="axisView('y')">Y</button>
-      <button class="axis-yn" onclick="axisView('-y')">-Y</button>
-      <button class="axis-z" onclick="axisView('z')">Z</button>
-      <button class="axis-zn" onclick="axisView('-z')">-Z</button>
-    </div>
-
-    <div class="panel">
-      <button onclick="goFaces(['front'])">Vista frontal</button>
-      <button onclick="goFaces(['left'])">Vista izquierda</button>
-      <button onclick="goFaces(['right'])">Vista derecha</button>
-      <button onclick="goFaces(['top'])">Vista superior</button>
-      <button onclick="goFaces(['front','right','top'])">Vista esquina</button>
-      <button onclick="fitModel()">Centrar</button>
-      <button onclick="zoomFar()">Alejar más</button>
-      <button onclick="clearSelection()">Quitar selección</button>
-      <button onclick="openAR()">Abrir AR</button>
-    </div>
-
-    <div class="status">
-      Movimiento corregido:<br>
-      • arrastrar = orbitar estable<br>
-      • Shift + arrastrar = panear<br>
-      • rueda = zoom controlado<br>
-      • doble clic = enfocar<br>
-      • móvil: 1 dedo rota, 2 dedos zoom/pan
-    </div>
-
-    <div class="loader" id="loader">Cargando modelo 3D...</div>
-  </div>
-
-  <script>
-    const canvas = document.getElementById("renderCanvas");
-    const engine = new BABYLON.Engine(canvas, true);
-
-    let scene, camera, rootMesh = null;
-    let modelCenter = BABYLON.Vector3.Zero();
-    let modelRadius = 1;
-    let selectedMesh = null;
-    let highlightLayer = null;
-
-    const cubeFrontFace = document.getElementById("cubeFrontFace");
-    const cubeTopFace = document.getElementById("cubeTopFace");
-    const cubeRightFace = document.getElementById("cubeRightFace");
-    const navcube = document.getElementById("navcube");
-
-    const hotTop = document.getElementById("hotTop");
-    const hotBottom = document.getElementById("hotBottom");
-    const hotLeft = document.getElementById("hotLeft");
-    const hotRight = document.getElementById("hotRight");
-    const hotTL = document.getElementById("hotTL");
-    const hotTR = document.getElementById("hotTR");
-    const hotBL = document.getElementById("hotBL");
-    const hotBR = document.getElementById("hotBR");
-
-    const FACE_VECTORS = {
-      front:  new BABYLON.Vector3(0, 0, 1),
-      back:   new BABYLON.Vector3(0, 0, -1),
-      right:  new BABYLON.Vector3(1, 0, 0),
-      left:   new BABYLON.Vector3(-1, 0, 0),
-      top:    new BABYLON.Vector3(0, 1, 0),
-      bottom: new BABYLON.Vector3(0, -1, 0)
-    };
-
-    const NAV_RULES = {
-      front: {
-        topFace: "top",
-        rightFace: "right",
-        edgeTop: ["front","top"],
-        edgeBottom: ["front","bottom"],
-        edgeLeft: ["front","left"],
-        edgeRight: ["front","right"],
-        cornerTL: ["front","left","top"],
-        cornerTR: ["front","right","top"],
-        cornerBL: ["front","left","bottom"],
-        cornerBR: ["front","right","bottom"]
-      },
-      right: {
-        topFace: "top",
-        rightFace: "back",
-        edgeTop: ["right","top"],
-        edgeBottom: ["right","bottom"],
-        edgeLeft: ["right","front"],
-        edgeRight: ["right","back"],
-        cornerTL: ["right","front","top"],
-        cornerTR: ["right","back","top"],
-        cornerBL: ["right","front","bottom"],
-        cornerBR: ["right","back","bottom"]
-      },
-      back: {
-        topFace: "top",
-        rightFace: "left",
-        edgeTop: ["back","top"],
-        edgeBottom: ["back","bottom"],
-        edgeLeft: ["back","right"],
-        edgeRight: ["back","left"],
-        cornerTL: ["back","right","top"],
-        cornerTR: ["back","left","top"],
-        cornerBL: ["back","right","bottom"],
-        cornerBR: ["back","left","bottom"]
-      },
-      left: {
-        topFace: "top",
-        rightFace: "front",
-        edgeTop: ["left","top"],
-        edgeBottom: ["left","bottom"],
-        edgeLeft: ["left","back"],
-        edgeRight: ["left","front"],
-        cornerTL: ["left","back","top"],
-        cornerTR: ["left","front","top"],
-        cornerBL: ["left","back","bottom"],
-        cornerBR: ["left","front","bottom"]
-      },
-      top: {
-        topFace: "back",
-        rightFace: "right",
-        edgeTop: ["top","back"],
-        edgeBottom: ["top","front"],
-        edgeLeft: ["top","left"],
-        edgeRight: ["top","right"],
-        cornerTL: ["top","back","left"],
-        cornerTR: ["top","back","right"],
-        cornerBL: ["top","front","left"],
-        cornerBR: ["top","front","right"]
-      },
-      bottom: {
-        topFace: "front",
-        rightFace: "right",
-        edgeTop: ["bottom","front"],
-        edgeBottom: ["bottom","back"],
-        edgeLeft: ["bottom","left"],
-        edgeRight: ["bottom","right"],
-        cornerTL: ["bottom","front","left"],
-        cornerTR: ["bottom","front","right"],
-        cornerBL: ["bottom","back","left"],
-        cornerBR: ["bottom","back","right"]
-      }
-    };
-
-    function label(face){
-      return face.toUpperCase();
-    }
-
-    function normalizeAlphaDeg(deg){
-      return ((deg % 360) + 360) % 360;
-    }
-
-    function dominantFace(){
-      const betaDeg = BABYLON.Tools.ToDegrees(camera.beta);
-      const alphaDeg = normalizeAlphaDeg(BABYLON.Tools.ToDegrees(camera.alpha));
-
-      if (betaDeg < 35) return "top";
-      if (betaDeg > 145) return "bottom";
-
-      if (alphaDeg >= 315 || alphaDeg < 45) return "front";
-      if (alphaDeg >= 45 && alphaDeg < 135) return "right";
-      if (alphaDeg >= 135 && alphaDeg < 225) return "back";
-      return "left";
-    }
-
-    function updateNavCube(){
-      const main = dominantFace();
-      const rule = NAV_RULES[main];
-
-      cubeFrontFace.textContent = label(main);
-      cubeTopFace.textContent = label(rule.topFace);
-      cubeRightFace.textContent = label(rule.rightFace);
-
-      cubeFrontFace.onclick = () => goFaces([main]);
-      cubeTopFace.onclick = () => goFaces([rule.topFace]);
-      cubeRightFace.onclick = () => goFaces([rule.rightFace]);
-
-      hotTop.onclick = () => goFaces(rule.edgeTop);
-      hotBottom.onclick = () => goFaces(rule.edgeBottom);
-      hotLeft.onclick = () => goFaces(rule.edgeLeft);
-      hotRight.onclick = () => goFaces(rule.edgeRight);
-      hotTL.onclick = () => goFaces(rule.cornerTL);
-      hotTR.onclick = () => goFaces(rule.cornerTR);
-      hotBL.onclick = () => goFaces(rule.cornerBL);
-      hotBR.onclick = () => goFaces(rule.cornerBR);
-
-      const rx = (BABYLON.Tools.ToDegrees(camera.beta) - 90) * 0.18;
-      const ry = (-BABYLON.Tools.ToDegrees(camera.alpha)) * 0.18;
-      navcube.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
-    }
-
-    async function createScene() {
-      scene = new BABYLON.Scene(engine);
-      scene.clearColor = new BABYLON.Color4(0.01, 0.03, 0.08, 1);
-
-      camera = new BABYLON.ArcRotateCamera(
-        "camera",
-        BABYLON.Tools.ToRadians(45),
-        BABYLON.Tools.ToRadians(60),
-        10,
-        BABYLON.Vector3.Zero(),
-        scene
-      );
-
-      camera.attachControl(canvas, true);
-
-      // Sensibilidad más baja y estable
-      camera.inertia = 0;
-      camera.angularSensibilityX = 4200;
-      camera.angularSensibilityY = 4200;
-      camera.panningSensibility = 180;
-      camera.wheelDeltaPercentage = 0.004;
-      camera.pinchDeltaPercentage = 0.004;
-      camera.lowerRadiusLimit = 0.3;
-      camera.upperRadiusLimit = 500;
-      camera.lowerBetaLimit = 0.03;
-      camera.upperBetaLimit = Math.PI - 0.03;
-      camera.useAutoRotationBehavior = false;
-      camera.useBouncingBehavior = false;
-      camera.allowUpsideDown = false;
-      camera.panningAxis = new BABYLON.Vector3(1, 1, 1);
-
-      if (camera.inputs?.attached?.pointers) {
-        camera.inputs.attached.pointers.pinchPrecision = 200;
-        camera.inputs.attached.pointers.multiTouchPanAndZoom = true;
-        camera.inputs.attached.pointers.buttons = [0, 1, 2];
-      }
-
-      const hemi = new BABYLON.HemisphericLight("hemi", new BABYLON.Vector3(0, 1, 0), scene);
-      hemi.intensity = 1.0;
-
-      const dir1 = new BABYLON.DirectionalLight("dir1", new BABYLON.Vector3(-1, -2, -1), scene);
-      dir1.position = new BABYLON.Vector3(20, 35, 20);
-      dir1.intensity = 1.0;
-
-      const dir2 = new BABYLON.DirectionalLight("dir2", new BABYLON.Vector3(1, -1, 1), scene);
-      dir2.position = new BABYLON.Vector3(-20, 25, -20);
-      dir2.intensity = 0.6;
-
-      const ground = BABYLON.MeshBuilder.CreateGround("ground", { width: 400, height: 400 }, scene);
-      const groundMat = new BABYLON.StandardMaterial("groundMat", scene);
-      groundMat.diffuseColor = new BABYLON.Color3(0.06, 0.08, 0.12);
-      groundMat.specularColor = new BABYLON.Color3(0, 0, 0);
-      ground.material = groundMat;
-      ground.position.y = -0.02;
-
-      highlightLayer = new BABYLON.HighlightLayer("hl1", scene);
-      highlightLayer.blurHorizontalSize = 1;
-      highlightLayer.blurVerticalSize = 1;
-
-      createAxesLines(3);
-      setupPicking();
-
-      try {
-        const result = await BABYLON.SceneLoader.ImportMeshAsync("", "./", "chasis.glb", scene);
-        const meshes = result.meshes.filter(m => m.name !== "__root__");
-
-        if (!meshes.length) {
-          document.getElementById("loader").innerText = "No se encontró geometría en chasis.glb";
-          return;
-        }
-
-        rootMesh = new BABYLON.TransformNode("rootModel", scene);
-
-        meshes.forEach(mesh => {
-          if (mesh instanceof BABYLON.AbstractMesh) {
-            mesh.parent = rootMesh;
-            mesh.isPickable = true;
-          }
-        });
-
-        rootMesh.rotation.x = 0;
-        rootMesh.rotation.y = 0;
-        rootMesh.rotation.z = 0;
-
-        scene.executeWhenReady(() => {
-          updateBounds();
-          fitModel();
-          updateNavCube();
-          document.getElementById("loader").style.display = "none";
-        });
-      } catch (e) {
-        console.error(e);
-        document.getElementById("loader").innerText = "Error cargando chasis.glb";
-      }
-
-      scene.onBeforeRenderObservable.add(() => {
-        updateNavCube();
-      });
-
-      return scene;
-    }
-
-    function createAxesLines(size) {
-      const axisX = BABYLON.MeshBuilder.CreateLines("axisX", {
-        points: [BABYLON.Vector3.Zero(), new BABYLON.Vector3(size, 0, 0)]
-      }, scene);
-      axisX.color = new BABYLON.Color3(1, 0, 0);
-
-      const axisY = BABYLON.MeshBuilder.CreateLines("axisY", {
-        points: [BABYLON.Vector3.Zero(), new BABYLON.Vector3(0, size, 0)]
-      }, scene);
-      axisY.color = new BABYLON.Color3(0, 1, 0);
-
-      const axisZ = BABYLON.MeshBuilder.CreateLines("axisZ", {
-        points: [BABYLON.Vector3.Zero(), new BABYLON.Vector3(0, 0, size)]
-      }, scene);
-      axisZ.color = new BABYLON.Color3(0, 0.7, 1);
-    }
-
-    function setupPicking() {
-      scene.onPointerObservable.add((pointerInfo) => {
-        if (pointerInfo.type !== BABYLON.PointerEventTypes.POINTERPICK) return;
-
-        const pick = pointerInfo.pickInfo;
-        if (!pick?.hit || !pick.pickedMesh) return;
-
-        const mesh = pick.pickedMesh;
-        if (!mesh || mesh.name === "ground") return;
-
-        selectMesh(mesh);
-      });
-
-      canvas.addEventListener("dblclick", () => {
-        const pick = scene.pick(scene.pointerX, scene.pointerY);
-        if (pick?.hit && pick.pickedPoint) {
-          focusOnPoint(pick.pickedPoint);
-        } else {
-          fitModel();
-        }
-      });
-    }
-
-    function selectMesh(mesh) {
-      clearSelection();
-
-      selectedMesh = mesh;
-      if (highlightLayer) {
-        highlightLayer.addMesh(mesh, BABYLON.Color3.FromHexString("#f7c948"));
-      }
-    }
-
-    function clearSelection() {
-      if (selectedMesh && highlightLayer) {
-        highlightLayer.removeMesh(selectedMesh);
-      }
-      selectedMesh = null;
-    }
-
-    function focusOnPoint(point) {
-      animateCamera(
-        camera.alpha,
-        camera.beta,
-        Math.max(camera.radius * 0.85, modelRadius * 0.6),
-        point
-      );
-    }
-
-    function updateBounds() {
-      if (!rootMesh) return;
-
-      let min = new BABYLON.Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
-      let max = new BABYLON.Vector3(-Number.MAX_VALUE, -Number.MAX_VALUE, -Number.MAX_VALUE);
-
-      rootMesh.getChildMeshes().forEach(mesh => {
-        const info = mesh.getBoundingInfo();
-        const bmin = info.boundingBox.minimumWorld;
-        const bmax = info.boundingBox.maximumWorld;
-
-        min = BABYLON.Vector3.Minimize(min, bmin);
-        max = BABYLON.Vector3.Maximize(max, bmax);
-      });
-
-      modelCenter = min.add(max).scale(0.5);
-
-      const size = max.subtract(min);
-      modelRadius = Math.max(size.x, size.y, size.z);
-
-      if (!isFinite(modelRadius) || modelRadius < 0.1) {
-        modelRadius = 1;
-      }
-
-      camera.target = modelCenter.clone();
-    }
-
-    function animateCamera(alpha, beta, radius, target = null) {
-      const finalTarget = target ? target.clone() : modelCenter.clone();
-      const safeRadius = Math.min(Math.max(radius, 0.5), 120);
-
-      BABYLON.Animation.CreateAndStartAnimation(
-        "camAlpha", camera, "alpha", 60, 18, camera.alpha, alpha, 0
-      );
-      BABYLON.Animation.CreateAndStartAnimation(
-        "camBeta", camera, "beta", 60, 18, camera.beta, beta, 0
-      );
-      BABYLON.Animation.CreateAndStartAnimation(
-        "camRadius", camera, "radius", 60, 18, camera.radius, safeRadius, 0
-      );
-      BABYLON.Animation.CreateAndStartAnimation(
-        "camTarget", camera, "target", 60, 18, camera.target.clone(), finalTarget, 0
-      );
-    }
-
-    function goFaces(faces){
-      let v = new BABYLON.Vector3(0,0,0);
-
-      faces.forEach(face => {
-        v = v.add(FACE_VECTORS[face]);
-      });
-
-      if (v.length() === 0) {
-        fitModel();
-        return;
-      }
-
-      v.normalize();
-
-      const alpha = Math.atan2(v.x, v.z);
-      const beta = Math.acos(BABYLON.Scalar.Clamp(v.y, -1, 1));
-
-      let mult = 2.4;
-      if (faces.length === 1) mult = 2.0;
-      if (faces.length === 2) mult = 2.2;
-      if (faces.length === 3) mult = 2.4;
-
-      animateCamera(alpha, beta, modelRadius * mult);
-    }
-
-    function fitModel() {
-      updateBounds();
-      animateCamera(
-        BABYLON.Tools.ToRadians(45),
-        BABYLON.Tools.ToRadians(60),
-        Math.max(modelRadius * 2.2, 8)
-      );
-    }
-
-    function zoomFar() {
-      animateCamera(
-        camera.alpha,
-        camera.beta,
-        Math.min(modelRadius * 3.5, 120),
-        camera.target.clone()
-      );
-    }
-
-    function axisView(axis) {
-      if (axis === "x")  goFaces(["right"]);
-      if (axis === "-x") goFaces(["left"]);
-      if (axis === "y")  goFaces(["top"]);
-      if (axis === "-y") goFaces(["bottom"]);
-      if (axis === "z")  goFaces(["front"]);
-      if (axis === "-z") goFaces(["back"]);
-    }
-
-    function openAR() {
-      const launcher = document.getElementById("arLauncher");
-
-      if (launcher && launcher.canActivateAR) {
-        launcher.activateAR();
-      } else {
-        alert("La realidad aumentada no está disponible en este dispositivo o navegador. Ábrelo en Chrome desde un celular compatible.");
-      }
-    }
-
-    createScene().then((scene) => {
-      engine.runRenderLoop(() => {
-        scene.render();
-      });
-    });
-
-    window.addEventListener("resize", () => {
-      engine.resize();
-    });
-  </script>
+
+<div class="topbar">
+
+<img src="logo-ups.png">
+
+<h3>Visor 3D de Chasis</h3>
+
+</div>
+
+<canvas id="renderCanvas"></canvas>
+
+<model-viewer
+id="arViewer"
+src="Chasis2.0.glb"
+ar
+ar-modes="scene-viewer webxr quick-look"
+camera-controls
+style="width:1px;height:1px;opacity:0;">
+</model-viewer>
+
+<div class="panel">
+
+<button onclick="fitModel()">Centrar</button>
+
+<button onclick="zoomOut()">Alejar</button>
+
+<button onclick="openAR()">AR</button>
+
+</div>
+
+<div id="loader" class="loader">
+
+Cargando modelo...
+
+</div>
+
+<script>
+
+const canvas = document.getElementById("renderCanvas")
+
+const engine = new BABYLON.Engine(canvas,true)
+
+let scene
+let camera
+let rootMesh
+
+let modelCenter = BABYLON.Vector3.Zero()
+
+let modelRadius = 1
+
+function createScene(){
+
+scene = new BABYLON.Scene(engine)
+
+scene.clearColor = new BABYLON.Color4(0.02,0.04,0.08,1)
+
+camera = new BABYLON.ArcRotateCamera(
+
+"camera",
+
+BABYLON.Tools.ToRadians(45),
+
+BABYLON.Tools.ToRadians(60),
+
+10,
+
+BABYLON.Vector3.Zero(),
+
+scene
+
+)
+
+camera.attachControl(canvas,true)
+
+camera.inertia = 0
+
+camera.angularSensibilityX = 4200
+camera.angularSensibilityY = 4200
+
+camera.panningSensibility = 180
+
+camera.wheelDeltaPercentage = 0.004
+camera.pinchDeltaPercentage = 0.004
+
+camera.lowerRadiusLimit = 0.5
+camera.upperRadiusLimit = 100
+
+camera.lowerBetaLimit = 0.03
+camera.upperBetaLimit = Math.PI - 0.03
+
+const light = new BABYLON.HemisphericLight(
+
+"light",
+
+new BABYLON.Vector3(0,1,0),
+
+scene
+
+)
+
+light.intensity = 1
+
+loadModel()
+
+return scene
+
+}
+
+async function loadModel(){
+
+try{
+
+const result = await BABYLON.SceneLoader.ImportMeshAsync(
+
+"",
+
+"./",
+
+"Chasis2.0.glb",
+
+scene
+
+)
+
+rootMesh = new BABYLON.TransformNode("root",scene)
+
+result.meshes.forEach(m=>{
+
+if(m instanceof BABYLON.Mesh){
+
+m.parent = rootMesh
+
+}
+
+})
+
+scene.executeWhenReady(()=>{
+
+calculateBounds()
+
+fitModel()
+
+document.getElementById("loader").style.display="none"
+
+})
+
+}
+
+catch(e){
+
+console.error(e)
+
+document.getElementById("loader").innerText="Error cargando modelo"
+
+}
+
+}
+
+function calculateBounds(){
+
+let min = new BABYLON.Vector3(Number.MAX_VALUE,Number.MAX_VALUE,Number.MAX_VALUE)
+
+let max = new BABYLON.Vector3(-Number.MAX_VALUE,-Number.MAX_VALUE,-Number.MAX_VALUE)
+
+rootMesh.getChildMeshes().forEach(mesh=>{
+
+const b = mesh.getBoundingInfo()
+
+min = BABYLON.Vector3.Minimize(min,b.boundingBox.minimumWorld)
+
+max = BABYLON.Vector3.Maximize(max,b.boundingBox.maximumWorld)
+
+})
+
+modelCenter = min.add(max).scale(0.5)
+
+const size = max.subtract(min)
+
+modelRadius = Math.max(size.x,size.y,size.z)
+
+camera.target = modelCenter.clone()
+
+}
+
+function fitModel(){
+
+camera.alpha = BABYLON.Tools.ToRadians(45)
+
+camera.beta = BABYLON.Tools.ToRadians(60)
+
+camera.radius = Math.max(modelRadius*2.2,8)
+
+camera.target = modelCenter.clone()
+
+}
+
+function zoomOut(){
+
+camera.radius = Math.min(modelRadius*3.5,80)
+
+}
+
+function openAR(){
+
+const viewer = document.getElementById("arViewer")
+
+if(viewer.canActivateAR){
+
+viewer.activateAR()
+
+}
+
+else{
+
+alert("AR disponible solo en celular compatible")
+
+}
+
+}
+
+createScene()
+
+engine.runRenderLoop(()=>{
+
+scene.render()
+
+})
+
+window.addEventListener("resize",()=>{
+
+engine.resize()
+
+})
+
+</script>
+
 </body>
 </html>
