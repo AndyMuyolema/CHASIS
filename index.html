@@ -17,16 +17,18 @@
       --muted:#9fb3d1;
       --btn:#1e293b;
       --btn-hover:#334155;
-      --cubeFront:#d8e6f7;
-      --cubeTop:#bdd3ea;
-      --cubeRight:#a9bfd8;
-      --cubeBorder:#7f96ac;
-      --cubeText:#18324f;
-      --hotspot:#d6a048;
-      --hotspotBorder:#8f6a1f;
+
+      --cube-front:#d8e6f7;
+      --cube-top:#bcd3ea;
+      --cube-right:#a8bfd9;
+      --cube-border:#8196ad;
+      --cube-text:#18324f;
+
+      --hot:#d6a048;
+      --hot-border:#946b22;
     }
 
-    *{box-sizing:border-box}
+    *{ box-sizing:border-box; }
 
     html,body{
       width:100%;
@@ -61,7 +63,6 @@
       z-index:40;
       display:flex;
       align-items:center;
-      justify-content:space-between;
       gap:12px;
       padding:10px 14px;
       background:linear-gradient(180deg,#0b1630ee,#0b1630cc);
@@ -109,7 +110,7 @@
       justify-content:center;
       gap:8px;
       padding:10px;
-      width:min(95vw,1120px);
+      width:min(95vw,1150px);
       border-radius:16px;
       background:var(--panel);
       backdrop-filter:blur(8px);
@@ -164,7 +165,7 @@
       right:14px;
       bottom:16px;
       z-index:30;
-      max-width:280px;
+      max-width:290px;
       padding:10px 12px;
       border-radius:14px;
       background:var(--panel);
@@ -179,8 +180,8 @@
       top:78px;
       right:14px;
       z-index:35;
-      width:240px;
-      height:270px;
+      width:250px;
+      height:290px;
       padding:10px;
       border-radius:14px;
       background:var(--panel);
@@ -197,65 +198,66 @@
 
     .navcube{
       position:relative;
-      width:170px;
-      height:170px;
+      width:180px;
+      height:180px;
       margin:0 auto;
+      transform-origin:center center;
+      transition:transform .08s linear;
     }
 
-    /* Caras del cubo estilo Inventor */
-    .face-center{
+    .cube-front{
       position:absolute;
-      left:50px;
-      top:54px;
-      width:66px;
-      height:66px;
-      background:var(--cubeFront);
-      border:1px solid var(--cubeBorder);
+      left:52px;
+      top:56px;
+      width:72px;
+      height:72px;
+      background:var(--cube-front);
+      border:1px solid var(--cube-border);
       box-shadow:0 4px 8px rgba(0,0,0,.18);
       display:flex;
       align-items:center;
       justify-content:center;
-      color:var(--cubeText);
+      color:var(--cube-text);
       font-weight:700;
       font-size:14px;
       text-transform:uppercase;
       cursor:pointer;
     }
 
-    .face-top{
+    .cube-top{
       position:absolute;
-      left:61px;
-      top:37px;
-      width:66px;
-      height:18px;
-      background:var(--cubeTop);
-      border:1px solid var(--cubeBorder);
+      left:64px;
+      top:38px;
+      width:72px;
+      height:20px;
+      background:var(--cube-top);
+      border:1px solid var(--cube-border);
       transform:skewX(-35deg);
       transform-origin:left bottom;
       display:flex;
       align-items:center;
       justify-content:center;
-      color:var(--cubeText);
+      color:var(--cube-text);
       font-size:10px;
       font-weight:700;
       text-transform:uppercase;
       cursor:pointer;
     }
 
-    .face-right{
+    .cube-right{
       position:absolute;
-      left:116px;
-      top:48px;
-      width:20px;
-      height:66px;
-      background:var(--cubeRight);
-      border:1px solid var(--cubeBorder);
+      left:124px;
+      top:49px;
+      width:22px;
+      height:72px;
+      background:var(--cube-right);
+      border:1px solid var(--cube-border);
       transform:skewY(-35deg);
       transform-origin:left top;
       display:flex;
       align-items:center;
       justify-content:center;
-      color:var(--cubeText);
+      color:var(--cube-text);
       font-size:10px;
       font-weight:700;
       writing-mode:vertical-rl;
@@ -263,7 +265,6 @@
       cursor:pointer;
     }
 
-    /* Hotspots tipo Inventor */
     .hot{
       position:absolute;
       background:transparent;
@@ -281,43 +282,67 @@
       filter:drop-shadow(0 1px 1px rgba(0,0,0,.35));
     }
 
-    .hot-top{ left:77px; top:18px; width:18px; height:18px; }
+    .hot-top{
+      left:82px;
+      top:18px;
+      width:18px;
+      height:18px;
+    }
+
     .hot-top .tri{
       border-width:0 9px 12px 9px;
-      border-color:transparent transparent var(--hotspot) transparent;
+      border-color:transparent transparent var(--hot) transparent;
     }
 
-    .hot-bottom{ left:77px; top:124px; width:18px; height:18px; }
+    .hot-bottom{
+      left:82px;
+      top:132px;
+      width:18px;
+      height:18px;
+    }
+
     .hot-bottom .tri{
       border-width:12px 9px 0 9px;
-      border-color:var(--hotspot) transparent transparent transparent;
+      border-color:var(--hot) transparent transparent transparent;
     }
 
-    .hot-left{ left:20px; top:78px; width:18px; height:18px; }
+    .hot-left{
+      left:22px;
+      top:84px;
+      width:18px;
+      height:18px;
+    }
+
     .hot-left .tri{
       border-width:9px 12px 9px 0;
-      border-color:transparent var(--hotspot) transparent transparent;
+      border-color:transparent var(--hot) transparent transparent;
     }
 
-    .hot-right{ left:132px; top:78px; width:18px; height:18px; }
+    .hot-right{
+      left:140px;
+      top:84px;
+      width:18px;
+      height:18px;
+    }
+
     .hot-right .tri{
       border-width:9px 0 9px 12px;
-      border-color:transparent transparent transparent var(--hotspot);
+      border-color:transparent transparent transparent var(--hot);
     }
 
     .hot-corner{
       width:16px;
       height:16px;
       border-radius:50%;
-      background:var(--hotspot);
-      border:1px solid var(--hotspotBorder);
+      background:var(--hot);
+      border:1px solid var(--hot-border);
       box-shadow:0 1px 2px rgba(0,0,0,.35);
     }
 
-    .hot-tl{ left:32px; top:28px; }
-    .hot-tr{ left:122px; top:28px; }
-    .hot-bl{ left:32px; top:118px; }
-    .hot-br{ left:122px; top:118px; }
+    .hot-tl{ left:30px; top:26px; }
+    .hot-tr{ left:128px; top:26px; }
+    .hot-bl{ left:30px; top:126px; }
+    .hot-br{ left:128px; top:126px; }
 
     .hot:hover .tri{
       filter:brightness(1.15) drop-shadow(0 1px 1px rgba(0,0,0,.35));
@@ -353,15 +378,15 @@
       .brand img{ width:38px; height:38px; }
 
       .navcube-widget{
-        width:210px;
-        height:250px;
+        width:220px;
+        height:260px;
         top:72px;
         right:10px;
       }
 
       .navcube{
-        transform:scale(.9);
         transform-origin:top center;
+        scale:.9;
       }
 
       .axes{
@@ -386,7 +411,7 @@
         <img src="logo-ups.png" alt="Logo UPS">
         <div>
           <h1>Visor 3D Profesional de Chasis</h1>
-          <p>Babylon.js · cubo tipo Inventor · aristas y esquinas funcionales</p>
+          <p>Cubo tipo Inventor · aristas y esquinas funcionales · sincronizado con la vista</p>
         </div>
       </div>
     </div>
@@ -397,19 +422,19 @@
       <div class="navcube-title">Cubo 3D de navegación</div>
 
       <div class="navcube" id="navcube">
-        <div class="face-top" id="faceTopLabel"></div>
-        <div class="face-right" id="faceRightLabel"></div>
-        <div class="face-center" id="faceCenterLabel"></div>
+        <div class="cube-top" id="cubeTopFace"></div>
+        <div class="cube-right" id="cubeRightFace"></div>
+        <div class="cube-front" id="cubeFrontFace"></div>
 
-        <button class="hot hot-top" id="hotTop" title="Superior"><span class="tri"></span></button>
-        <button class="hot hot-bottom" id="hotBottom" title="Inferior"><span class="tri"></span></button>
-        <button class="hot hot-left" id="hotLeft" title="Izquierda"><span class="tri"></span></button>
-        <button class="hot hot-right" id="hotRight" title="Derecha"><span class="tri"></span></button>
+        <button class="hot hot-top" id="hotTop"><span class="tri"></span></button>
+        <button class="hot hot-bottom" id="hotBottom"><span class="tri"></span></button>
+        <button class="hot hot-left" id="hotLeft"><span class="tri"></span></button>
+        <button class="hot hot-right" id="hotRight"><span class="tri"></span></button>
 
-        <button class="hot hot-corner hot-tl" id="hotTL" title="Esquina superior izquierda"></button>
-        <button class="hot hot-corner hot-tr" id="hotTR" title="Esquina superior derecha"></button>
-        <button class="hot hot-corner hot-bl" id="hotBL" title="Esquina inferior izquierda"></button>
-        <button class="hot hot-corner hot-br" id="hotBR" title="Esquina inferior derecha"></button>
+        <button class="hot hot-corner hot-tl" id="hotTL"></button>
+        <button class="hot hot-corner hot-tr" id="hotTR"></button>
+        <button class="hot hot-corner hot-bl" id="hotBL"></button>
+        <button class="hot hot-corner hot-br" id="hotBR"></button>
       </div>
 
       <div class="navcube-help">
@@ -460,9 +485,10 @@
     let selectedMesh = null;
     let selectedOriginalMaterial = null;
 
-    const faceCenterLabel = document.getElementById("faceCenterLabel");
-    const faceTopLabel = document.getElementById("faceTopLabel");
-    const faceRightLabel = document.getElementById("faceRightLabel");
+    const cubeFrontFace = document.getElementById("cubeFrontFace");
+    const cubeTopFace = document.getElementById("cubeTopFace");
+    const cubeRightFace = document.getElementById("cubeRightFace");
+    const navcube = document.getElementById("navcube");
 
     const hotTop = document.getElementById("hotTop");
     const hotBottom = document.getElementById("hotBottom");
@@ -484,87 +510,90 @@
 
     const NAV_RULES = {
       front: {
-        top:    ["front","top"],
-        bottom: ["front","bottom"],
-        left:   ["front","left"],
-        right:  ["front","right"],
-        tl:     ["front","left","top"],
-        tr:     ["front","right","top"],
-        bl:     ["front","left","bottom"],
-        br:     ["front","right","bottom"],
         topFace: "top",
-        rightFace: "right"
+        rightFace: "right",
+        edgeTop: ["front","top"],
+        edgeBottom: ["front","bottom"],
+        edgeLeft: ["front","left"],
+        edgeRight: ["front","right"],
+        cornerTL: ["front","left","top"],
+        cornerTR: ["front","right","top"],
+        cornerBL: ["front","left","bottom"],
+        cornerBR: ["front","right","bottom"]
       },
       right: {
-        top:    ["right","top"],
-        bottom: ["right","bottom"],
-        left:   ["right","front"],
-        right:  ["right","back"],
-        tl:     ["right","front","top"],
-        tr:     ["right","back","top"],
-        bl:     ["right","front","bottom"],
-        br:     ["right","back","bottom"],
         topFace: "top",
-        rightFace: "back"
+        rightFace: "back",
+        edgeTop: ["right","top"],
+        edgeBottom: ["right","bottom"],
+        edgeLeft: ["right","front"],
+        edgeRight: ["right","back"],
+        cornerTL: ["right","front","top"],
+        cornerTR: ["right","back","top"],
+        cornerBL: ["right","front","bottom"],
+        cornerBR: ["right","back","bottom"]
       },
       back: {
-        top:    ["back","top"],
-        bottom: ["back","bottom"],
-        left:   ["back","right"],
-        right:  ["back","left"],
-        tl:     ["back","right","top"],
-        tr:     ["back","left","top"],
-        bl:     ["back","right","bottom"],
-        br:     ["back","left","bottom"],
         topFace: "top",
-        rightFace: "left"
+        rightFace: "left",
+        edgeTop: ["back","top"],
+        edgeBottom: ["back","bottom"],
+        edgeLeft: ["back","right"],
+        edgeRight: ["back","left"],
+        cornerTL: ["back","right","top"],
+        cornerTR: ["back","left","top"],
+        cornerBL: ["back","right","bottom"],
+        cornerBR: ["back","left","bottom"]
       },
       left: {
-        top:    ["left","top"],
-        bottom: ["left","bottom"],
-        left:   ["left","back"],
-        right:  ["left","front"],
-        tl:     ["left","back","top"],
-        tr:     ["left","front","top"],
-        bl:     ["left","back","bottom"],
-        br:     ["left","front","bottom"],
         topFace: "top",
-        rightFace: "front"
+        rightFace: "front",
+        edgeTop: ["left","top"],
+        edgeBottom: ["left","bottom"],
+        edgeLeft: ["left","back"],
+        edgeRight: ["left","front"],
+        cornerTL: ["left","back","top"],
+        cornerTR: ["left","front","top"],
+        cornerBL: ["left","back","bottom"],
+        cornerBR: ["left","front","bottom"]
       },
       top: {
-        top:    ["top","back"],
-        bottom: ["top","front"],
-        left:   ["top","left"],
-        right:  ["top","right"],
-        tl:     ["top","back","left"],
-        tr:     ["top","back","right"],
-        bl:     ["top","front","left"],
-        br:     ["top","front","right"],
         topFace: "back",
-        rightFace: "right"
+        rightFace: "right",
+        edgeTop: ["top","back"],
+        edgeBottom: ["top","front"],
+        edgeLeft: ["top","left"],
+        edgeRight: ["top","right"],
+        cornerTL: ["top","back","left"],
+        cornerTR: ["top","back","right"],
+        cornerBL: ["top","front","left"],
+        cornerBR: ["top","front","right"]
       },
       bottom: {
-        top:    ["bottom","front"],
-        bottom: ["bottom","back"],
-        left:   ["bottom","left"],
-        right:  ["bottom","right"],
-        tl:     ["bottom","front","left"],
-        tr:     ["bottom","front","right"],
-        bl:     ["bottom","back","left"],
-        br:     ["bottom","back","right"],
         topFace: "front",
-        rightFace: "right"
+        rightFace: "right",
+        edgeTop: ["bottom","front"],
+        edgeBottom: ["bottom","back"],
+        edgeLeft: ["bottom","left"],
+        edgeRight: ["bottom","right"],
+        cornerTL: ["bottom","front","left"],
+        cornerTR: ["bottom","front","right"],
+        cornerBL: ["bottom","back","left"],
+        cornerBR: ["bottom","back","right"]
       }
     };
 
-    function labelOf(face){
+    function label(face){
       return face.toUpperCase();
+    }
+
+    function normalizeAlphaDeg(deg){
+      return ((deg % 360) + 360) % 360;
     }
 
     function dominantFace(){
       const betaDeg = BABYLON.Tools.ToDegrees(camera.beta);
-      let alphaDeg = BABYLON.Tools.ToDegrees(camera.alpha);
-      alphaDeg = ((alphaDeg % 360) + 360) % 360;
+      const alphaDeg = normalizeAlphaDeg(BABYLON.Tools.ToDegrees(camera.alpha));
 
       if (betaDeg < 35) return "top";
       if (betaDeg > 145) return "bottom";
@@ -575,26 +604,31 @@
       return "left";
     }
 
-    function refreshNavCube(){
+    function updateNavCube(){
       const main = dominantFace();
       const rule = NAV_RULES[main];
 
-      faceCenterLabel.textContent = labelOf(main);
-      faceTopLabel.textContent = labelOf(rule.topFace);
-      faceRightLabel.textContent = labelOf(rule.rightFace);
+      cubeFrontFace.textContent = label(main);
+      cubeTopFace.textContent = label(rule.topFace);
+      cubeRightFace.textContent = label(rule.rightFace);
 
-      faceCenterLabel.onclick = () => goFaces([main]);
-      faceTopLabel.onclick = () => goFaces([rule.topFace]);
-      faceRightLabel.onclick = () => goFaces([rule.rightFace]);
+      cubeFrontFace.onclick = () => goFaces([main]);
+      cubeTopFace.onclick = () => goFaces([rule.topFace]);
+      cubeRightFace.onclick = () => goFaces([rule.rightFace]);
 
-      hotTop.onclick = () => goFaces(rule.top);
-      hotBottom.onclick = () => goFaces(rule.bottom);
-      hotLeft.onclick = () => goFaces(rule.left);
-      hotRight.onclick = () => goFaces(rule.right);
-      hotTL.onclick = () => goFaces(rule.tl);
-      hotTR.onclick = () => goFaces(rule.tr);
-      hotBL.onclick = () => goFaces(rule.bl);
-      hotBR.onclick = () => goFaces(rule.br);
+      hotTop.onclick = () => goFaces(rule.edgeTop);
+      hotBottom.onclick = () => goFaces(rule.edgeBottom);
+      hotLeft.onclick = () => goFaces(rule.edgeLeft);
+      hotRight.onclick = () => goFaces(rule.edgeRight);
+      hotTL.onclick = () => goFaces(rule.cornerTL);
+      hotTR.onclick = () => goFaces(rule.cornerTR);
+      hotBL.onclick = () => goFaces(rule.cornerBL);
+      hotBR.onclick = () => goFaces(rule.cornerBR);
+
+      // inclinación visual suave del cubo según la cámara
+      const rx = (BABYLON.Tools.ToDegrees(camera.beta) - 90) * 0.18;
+      const ry = (-BABYLON.Tools.ToDegrees(camera.alpha)) * 0.18;
+      navcube.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
     }
 
     async function createScene() {
@@ -618,12 +652,10 @@
       camera.panningSensibility = 120;
       camera.wheelDeltaPercentage = 0.008;
       camera.pinchDeltaPercentage = 0.008;
-
       camera.lowerRadiusLimit = 0.2;
       camera.upperRadiusLimit = 100000;
       camera.lowerBetaLimit = 0.001;
       camera.upperBetaLimit = Math.PI - 0.001;
-
       camera.useAutoRotationBehavior = false;
       camera.useBouncingBehavior = false;
 
@@ -677,7 +709,7 @@
         scene.executeWhenReady(() => {
           updateBounds();
           fitModel();
-          refreshNavCube();
+          updateNavCube();
           document.getElementById("loader").style.display = "none";
         });
       } catch (e) {
@@ -686,7 +718,7 @@
       }
 
       scene.onBeforeRenderObservable.add(() => {
-        refreshNavCube();
+        updateNavCube();
       });
 
       return scene;
@@ -787,8 +819,8 @@
     function goFaces(faces){
       let v = new BABYLON.Vector3(0,0,0);
 
-      faces.forEach(f => {
-        v = v.add(FACE_VECTORS[f]);
+      faces.forEach(face => {
+        v = v.add(FACE_VECTORS[face]);
       });
 
       if (v.length() === 0) {
