@@ -3,30 +3,29 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Visor 3D de Chasis Automotriz</title>
+  <title>Visor 3D Profesional - Chasis</title>
 
-  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <script src="https://cdn.babylonjs.com/babylon.js"></script>
+  <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
 
   <style>
     :root{
       --bg1:#020617;
       --bg2:#0f172a;
-      --panel:#0b1220cc;
-      --panel-solid:#0f172a;
+      --panel:#0b1220dd;
       --line:#334155;
       --text:#e5eefc;
       --muted:#9fb3d1;
       --btn:#1e293b;
       --btn-hover:#334155;
-      --accent:#60a5fa;
-      --cube:120px;
     }
 
-    *{box-sizing:border-box}
-    html,body{
-      margin:0;
+    *{ box-sizing:border-box; }
+
+    html, body{
       width:100%;
       height:100%;
+      margin:0;
       overflow:hidden;
       font-family:Arial, Helvetica, sans-serif;
       background:linear-gradient(180deg,var(--bg2),var(--bg1));
@@ -37,282 +36,120 @@
       position:relative;
       width:100%;
       height:100%;
-      overflow:hidden;
     }
 
-    header{
+    #renderCanvas{
+      width:100%;
+      height:100%;
+      touch-action:none;
+      display:block;
+      background:#000;
+    }
+
+    .topbar{
       position:absolute;
       top:0;
       left:0;
       right:0;
-      z-index:30;
+      z-index:20;
       display:flex;
       align-items:center;
       justify-content:space-between;
       gap:12px;
-      padding:10px 16px;
+      padding:10px 14px;
       background:linear-gradient(180deg,#0b1630ee,#0b1630cc);
       border-bottom:1px solid #1e293b;
       backdrop-filter:blur(8px);
     }
 
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:12px;
+    .title-wrap{
       min-width:0;
     }
 
-    .brand img{
-      width:44px;
-      height:44px;
-      object-fit:contain;
-      background:#fff;
-      border-radius:10px;
-      padding:4px;
-      border:1px solid #cbd5e1;
-    }
-
-    .brand-text{
-      min-width:0;
-    }
-
-    .brand-text h1{
+    .title{
       margin:0;
       font-size:20px;
       line-height:1.1;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
     }
 
-    .brand-text p{
+    .subtitle{
       margin:4px 0 0;
       font-size:12px;
       color:var(--muted);
     }
 
-    .top-actions{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      flex-wrap:wrap;
-      justify-content:flex-end;
-    }
-
-    .top-actions button{
-      border:none;
-      border-radius:10px;
-      padding:10px 12px;
-      background:var(--btn);
-      color:#fff;
-      cursor:pointer;
-      font-size:13px;
-      border:1px solid #334155;
-    }
-
-    .top-actions button:hover{
-      background:var(--btn-hover);
-    }
-
-    model-viewer{
-      width:100%;
-      height:100%;
-      background:
-        radial-gradient(circle at center, rgba(59,130,246,.12), transparent 32%),
-        radial-gradient(circle at 50% 72%, rgba(255,255,255,.05), transparent 28%),
-        #000;
-      --poster-color: transparent;
-    }
-
-    .bottom-panel{
+    .panel{
       position:absolute;
       left:50%;
       transform:translateX(-50%);
-      bottom:18px;
-      z-index:25;
+      bottom:16px;
+      z-index:20;
       display:flex;
-      gap:8px;
       flex-wrap:wrap;
       justify-content:center;
-      max-width:min(95vw,1000px);
+      gap:8px;
       padding:10px;
+      width:min(95vw,1000px);
       border-radius:16px;
       background:var(--panel);
       border:1px solid #23324b;
       backdrop-filter:blur(8px);
     }
 
-    .bottom-panel button{
+    button{
       border:none;
       border-radius:10px;
       padding:10px 14px;
       background:var(--btn);
-      color:#fff;
+      color:white;
       cursor:pointer;
       font-size:14px;
       border:1px solid #334155;
     }
 
-    .bottom-panel button:hover{
+    button:hover{
       background:var(--btn-hover);
     }
 
     .axes{
       position:absolute;
-      left:16px;
-      bottom:18px;
-      z-index:26;
-      display:flex;
-      flex-direction:column;
-      gap:6px;
+      left:14px;
+      bottom:16px;
+      z-index:20;
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:8px;
       padding:10px;
       border-radius:14px;
       background:var(--panel);
       border:1px solid #23324b;
       backdrop-filter:blur(8px);
-      min-width:88px;
+      width:110px;
     }
 
     .axes-title{
+      grid-column:1 / -1;
+      text-align:center;
       font-size:12px;
       color:var(--muted);
       margin-bottom:2px;
-      text-align:center;
     }
 
-    .axes-grid{
-      display:grid;
-      grid-template-columns:repeat(2,1fr);
-      gap:6px;
-    }
+    .axis-x{ background:#7f1d1d; }
+    .axis-xn{ background:#991b1b; }
+    .axis-y{ background:#14532d; }
+    .axis-yn{ background:#166534; }
+    .axis-z{ background:#1d4ed8; }
+    .axis-zn{ background:#1e40af; }
 
-    .axis-btn{
-      border:none;
-      border-radius:10px;
-      padding:8px 0;
-      cursor:pointer;
-      color:#fff;
-      font-weight:700;
-      font-size:13px;
-      border:1px solid rgba(255,255,255,.12);
-    }
-
-    .axis-x{background:#7f1d1d}
-    .axis-xn{background:#991b1b}
-    .axis-y{background:#14532d}
-    .axis-yn{background:#166534}
-    .axis-z{background:#1d4ed8}
-    .axis-zn{background:#1e40af}
-
-    .nav-cube-wrap{
+    .status{
       position:absolute;
-      top:88px;
-      right:18px;
-      z-index:28;
-      width:200px;
-      height:220px;
-      pointer-events:none;
-    }
-
-    .nav-cube-wrap .label{
-      pointer-events:auto;
-      position:absolute;
-      top:0;
-      right:0;
-      left:0;
-      text-align:center;
-      font-size:12px;
-      color:var(--muted);
-      text-shadow:0 1px 2px #000;
-    }
-
-    .cube-stage{
-      position:absolute;
-      top:20px;
-      left:50%;
-      transform:translateX(-50%);
-      width:var(--cube);
-      height:var(--cube);
-      perspective:700px;
-      pointer-events:none;
-    }
-
-    .cube{
-      position:relative;
-      width:100%;
-      height:100%;
-      transform-style:preserve-3d;
-      transform:rotateX(-22deg) rotateY(35deg);
-      transition:transform .35s ease;
-      pointer-events:none;
-    }
-
-    .face{
-      position:absolute;
-      width:var(--cube);
-      height:var(--cube);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-weight:700;
-      letter-spacing:.5px;
-      color:#fff;
-      border:1px solid rgba(255,255,255,.18);
-      box-shadow:inset 0 0 20px rgba(255,255,255,.08);
-      backdrop-filter:blur(3px);
-      pointer-events:auto;
-      cursor:pointer;
-      user-select:none;
-    }
-
-    .face:hover{
-      filter:brightness(1.15);
-    }
-
-    .front { background:rgba(59,130,246,.55); transform:translateZ(calc(var(--cube) / 2)); }
-    .back  { background:rgba(148,163,184,.38); transform:rotateY(180deg) translateZ(calc(var(--cube) / 2)); }
-    .right { background:rgba(34,197,94,.45); transform:rotateY(90deg) translateZ(calc(var(--cube) / 2)); }
-    .left  { background:rgba(244,63,94,.45); transform:rotateY(-90deg) translateZ(calc(var(--cube) / 2)); }
-    .top   { background:rgba(14,165,233,.50); transform:rotateX(90deg) translateZ(calc(var(--cube) / 2)); }
-    .bottom{ background:rgba(168,85,247,.45); transform:rotateX(-90deg) translateZ(calc(var(--cube) / 2)); }
-
-    .corner-btn{
-      position:absolute;
-      width:22px;
-      height:22px;
-      border-radius:50%;
-      border:2px solid rgba(255,255,255,.9);
-      background:rgba(255,255,255,.16);
-      box-shadow:0 0 0 1px rgba(0,0,0,.45), 0 0 12px rgba(96,165,250,.25);
-      cursor:pointer;
-      pointer-events:auto;
-      backdrop-filter:blur(4px);
-    }
-
-    .corner-btn:hover{
-      background:rgba(96,165,250,.45);
-      transform:scale(1.08);
-    }
-
-    .c1{ top:36px; left:58px; }   /* top front left */
-    .c2{ top:36px; right:58px; }  /* top front right */
-    .c3{ top:72px; left:24px; }   /* top back left */
-    .c4{ top:72px; right:24px; }  /* top back right */
-
-    .c5{ top:122px; left:58px; }  /* bottom front left */
-    .c6{ top:122px; right:58px; } /* bottom front right */
-    .c7{ top:156px; left:24px; }  /* bottom back left */
-    .c8{ top:156px; right:24px; } /* bottom back right */
-
-    .hint{
-      position:absolute;
-      right:18px;
-      top:312px;
-      z-index:27;
-      max-width:200px;
+      right:14px;
+      bottom:16px;
+      z-index:20;
+      max-width:240px;
       padding:10px 12px;
-      border-radius:12px;
+      border-radius:14px;
       background:var(--panel);
       border:1px solid #23324b;
       color:var(--muted);
@@ -321,236 +158,422 @@
       backdrop-filter:blur(8px);
     }
 
+    .viewcube{
+      position:absolute;
+      top:76px;
+      right:14px;
+      z-index:20;
+      width:170px;
+      padding:10px;
+      border-radius:14px;
+      background:var(--panel);
+      border:1px solid #23324b;
+      backdrop-filter:blur(8px);
+    }
+
+    .viewcube-title{
+      text-align:center;
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:8px;
+    }
+
+    .cube-grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:6px;
+    }
+
+    .cube-grid button{
+      padding:10px 8px;
+      font-size:12px;
+    }
+
+    .loader{
+      position:absolute;
+      inset:0;
+      z-index:25;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:rgba(2,6,23,.82);
+      color:#fff;
+      font-size:18px;
+      letter-spacing:.3px;
+    }
+
     @media (max-width: 900px){
-      .nav-cube-wrap{
-        width:170px;
-        height:190px;
-        top:82px;
-        right:10px;
-      }
-
-      .cube-stage{
-        transform:translateX(-50%) scale(.82);
-        transform-origin:top center;
-      }
-
-      .hint{
-        display:none;
-      }
-
-      header{
+      .topbar{
         padding:10px 12px;
       }
 
-      .brand-text h1{
+      .title{
         font-size:17px;
       }
 
-      .brand img{
-        width:38px;
-        height:38px;
+      .viewcube{
+        width:145px;
+        top:72px;
+        right:10px;
       }
 
-      .top-actions{
-        display:none;
-      }
-
-      .bottom-panel{
-        bottom:14px;
-        width:min(95vw,760px);
+      .cube-grid button{
+        font-size:11px;
+        padding:9px 6px;
       }
 
       .axes{
         left:10px;
-        bottom:96px;
+        bottom:92px;
+      }
+
+      .status{
+        display:none;
+      }
+
+      .panel{
+        bottom:12px;
       }
     }
   </style>
 </head>
 <body>
   <div id="app">
-    <header>
-      <div class="brand">
-        <img src="logo-ups.png" alt="Logo Universidad Politécnica Salesiana">
-        <div class="brand-text">
-          <h1>Visor 3D de Chasis Automotriz</h1>
-          <p>Universidad Politécnica Salesiana · Modelo interactivo y realidad aumentada</p>
-        </div>
+    <div class="topbar">
+      <div class="title-wrap">
+        <h1 class="title">Visor 3D Profesional de Chasis</h1>
+        <div class="subtitle">Babylon.js · control libre · vistas rápidas · mejor encuadre</div>
       </div>
-
-      <div class="top-actions">
-        <button onclick="resetView()">Centrar</button>
-        <button onclick="toggleAR()">AR</button>
-      </div>
-    </header>
-
-    <model-viewer
-      id="viewer"
-      src="chasis.glb"
-      alt="Chasis automotriz 3D"
-      camera-controls
-      disable-tap
-      interaction-prompt="none"
-      orientation="-90deg 0deg 0deg"
-      camera-target="auto auto auto"
-      camera-orbit="45deg 62deg 180%"
-      min-camera-orbit="auto 1deg 5%"
-      max-camera-orbit="auto 179deg 1200%"
-      field-of-view="32deg"
-      min-field-of-view="12deg"
-      max-field-of-view="65deg"
-      interpolation-decay="120"
-      shadow-intensity="1.15"
-      shadow-softness="0.9"
-      exposure="1.05"
-      environment-image="neutral"
-      ar
-      ar-modes="scene-viewer webxr quick-look"
-      ar-scale="auto">
-    </model-viewer>
-
-    <div class="nav-cube-wrap">
-      <div class="label">Cubo 3D de navegación</div>
-
-      <div class="cube-stage">
-        <div class="cube" id="navCube">
-          <div class="face front"  onclick="setView('front')">FRONT</div>
-          <div class="face back"   onclick="setView('back')">BACK</div>
-          <div class="face right"  onclick="setView('right')">RIGHT</div>
-          <div class="face left"   onclick="setView('left')">LEFT</div>
-          <div class="face top"    onclick="setView('top')">TOP</div>
-          <div class="face bottom" onclick="setView('bottom')">BOTTOM</div>
-        </div>
-      </div>
-
-      <button class="corner-btn c1" onclick="setCorner('tfl')" title="Top Front Left"></button>
-      <button class="corner-btn c2" onclick="setCorner('tfr')" title="Top Front Right"></button>
-      <button class="corner-btn c3" onclick="setCorner('tbl')" title="Top Back Left"></button>
-      <button class="corner-btn c4" onclick="setCorner('tbr')" title="Top Back Right"></button>
-      <button class="corner-btn c5" onclick="setCorner('bfl')" title="Bottom Front Left"></button>
-      <button class="corner-btn c6" onclick="setCorner('bfr')" title="Bottom Front Right"></button>
-      <button class="corner-btn c7" onclick="setCorner('bbl')" title="Bottom Back Left"></button>
-      <button class="corner-btn c8" onclick="setCorner('bbr')" title="Bottom Back Right"></button>
     </div>
 
-    <div class="hint">
-      Toca las caras, esquinas o ejes para ir directo a esa vista. Con el dedo puedes girar libremente en diagonal, recto o como quieras.
+    <canvas id="renderCanvas"></canvas>
+
+    <div class="viewcube">
+      <div class="viewcube-title">Vistas</div>
+      <div class="cube-grid">
+        <button onclick="setTopView()">TOP</button>
+        <button onclick="setFrontView()">FRONT</button>
+        <button onclick="setRightView()">RIGHT</button>
+
+        <button onclick="setLeftView()">LEFT</button>
+        <button onclick="setIsoView()">ISO</button>
+        <button onclick="setBackView()">BACK</button>
+
+        <button onclick="setBottomView()">BOTTOM</button>
+        <button onclick="fitModel()">FIT</button>
+        <button onclick="setFreeView()">FREE</button>
+      </div>
     </div>
 
     <div class="axes">
       <div class="axes-title">Ejes</div>
-      <div class="axes-grid">
-        <button class="axis-btn axis-x"  onclick="axisView('x')">X</button>
-        <button class="axis-btn axis-xn" onclick="axisView('-x')">-X</button>
-        <button class="axis-btn axis-y"  onclick="axisView('y')">Y</button>
-        <button class="axis-btn axis-yn" onclick="axisView('-y')">-Y</button>
-        <button class="axis-btn axis-z"  onclick="axisView('z')">Z</button>
-        <button class="axis-btn axis-zn" onclick="axisView('-z')">-Z</button>
-      </div>
+      <button class="axis-x" onclick="axisView('x')">X</button>
+      <button class="axis-xn" onclick="axisView('-x')">-X</button>
+      <button class="axis-y" onclick="axisView('y')">Y</button>
+      <button class="axis-yn" onclick="axisView('-y')">-Y</button>
+      <button class="axis-z" onclick="axisView('z')">Z</button>
+      <button class="axis-zn" onclick="axisView('-z')">-Z</button>
     </div>
 
-    <div class="bottom-panel">
-      <button onclick="setView('front')">Frontal</button>
-      <button onclick="setView('left')">Izquierda</button>
-      <button onclick="setView('right')">Derecha</button>
-      <button onclick="setView('top')">Superior</button>
-      <button onclick="setCorner('tfr')">Esquina</button>
-      <button onclick="resetView()">Centrar</button>
-      <button onclick="toggleAR()">Abrir AR</button>
+    <div class="panel">
+      <button onclick="setFrontView()">Vista frontal</button>
+      <button onclick="setLeftView()">Vista izquierda</button>
+      <button onclick="setRightView()">Vista derecha</button>
+      <button onclick="setTopView()">Vista superior</button>
+      <button onclick="setIsoView()">Vista esquina</button>
+      <button onclick="fitModel()">Centrar</button>
+      <button onclick="zoomFar()">Alejar más</button>
     </div>
+
+    <div class="status">
+      1 dedo: rotar<br>
+      2 dedos: mover y zoom<br>
+      Rueda del mouse: zoom<br>
+      El modelo se centra automáticamente al cargar
+    </div>
+
+    <div class="loader" id="loader">Cargando modelo 3D...</div>
   </div>
 
   <script>
-    const viewer = document.getElementById('viewer');
-    const navCube = document.getElementById('navCube');
+    const canvas = document.getElementById("renderCanvas");
+    const engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
 
-    const DIST = '180%';
-    const DIST_FAR = '260%';
+    let scene, camera, rootMesh = null;
+    let modelMin = null, modelMax = null, modelCenter = null, modelRadius = 1;
 
-    const views = {
-      front:  { theta:   0, phi:  90, dist: DIST },
-      back:   { theta: 180, phi:  90, dist: DIST },
-      right:  { theta:  90, phi:  90, dist: DIST },
-      left:   { theta: -90, phi:  90, dist: DIST },
-      top:    { theta:   0, phi:   1, dist: DIST_FAR },
-      bottom: { theta:   0, phi: 179, dist: DIST_FAR },
+    const createScene = async function () {
+      scene = new BABYLON.Scene(engine);
+      scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
 
-      x:      { theta:  90, phi:  90, dist: DIST },
-      nx:     { theta: -90, phi:  90, dist: DIST },
-      y:      { theta:   0, phi:   1, dist: DIST_FAR },
-      ny:     { theta:   0, phi: 179, dist: DIST_FAR },
-      z:      { theta:   0, phi:  90, dist: DIST },
-      nz:     { theta: 180, phi:  90, dist: DIST }
+      // Cámara tipo CAD
+      camera = new BABYLON.ArcRotateCamera(
+        "camera",
+        BABYLON.Tools.ToRadians(45),
+        BABYLON.Tools.ToRadians(65),
+        20,
+        BABYLON.Vector3.Zero(),
+        scene
+      );
+
+      camera.attachControl(canvas, true);
+
+      // Movimiento libre
+      camera.wheelDeltaPercentage = 0.01;
+      camera.pinchDeltaPercentage = 0.01;
+      camera.panningSensibility = 80;
+      camera.angularSensibilityX = 700;
+      camera.angularSensibilityY = 700;
+
+      // Sin límites molestos
+      camera.lowerRadiusLimit = 0.1;
+      camera.upperRadiusLimit = 100000;
+      camera.lowerBetaLimit = 0.01;
+      camera.upperBetaLimit = Math.PI - 0.01;
+
+      camera.useBouncingBehavior = false;
+      camera.useAutoRotationBehavior = false;
+
+      // Luces
+      const hemi = new BABYLON.HemisphericLight(
+        "hemi",
+        new BABYLON.Vector3(0, 1, 0),
+        scene
+      );
+      hemi.intensity = 0.95;
+
+      const dir = new BABYLON.DirectionalLight(
+        "dir",
+        new BABYLON.Vector3(-1, -2, -1),
+        scene
+      );
+      dir.position = new BABYLON.Vector3(20, 40, 20);
+      dir.intensity = 1.1;
+
+      const dir2 = new BABYLON.DirectionalLight(
+        "dir2",
+        new BABYLON.Vector3(1, -1, 1),
+        scene
+      );
+      dir2.position = new BABYLON.Vector3(-20, 30, -20);
+      dir2.intensity = 0.7;
+
+      // Entorno
+      scene.environmentTexture = BABYLON.CubeTexture.CreateFromPrefilteredData(
+        "https://playground.babylonjs.com/textures/environment.env",
+        scene
+      );
+      scene.environmentIntensity = 1.0;
+      scene.createDefaultSkybox(scene.environmentTexture, true, 1000, 0.25);
+
+      // Suelo suave
+      const ground = BABYLON.MeshBuilder.CreateGround("ground", {
+        width: 200,
+        height: 200
+      }, scene);
+
+      const groundMat = new BABYLON.PBRMaterial("groundMat", scene);
+      groundMat.albedoColor = new BABYLON.Color3(0.08, 0.10, 0.14);
+      groundMat.roughness = 0.95;
+      groundMat.metallic = 0.05;
+      ground.material = groundMat;
+      ground.position.y = -0.02;
+
+      // Ejes visuales
+      createAxes(3);
+
+      // Carga modelo
+      await BABYLON.SceneLoader.ImportMeshAsync("", "./", "chasis.glb", scene).then((result) => {
+        const meshes = result.meshes.filter(m => m.name !== "__root__");
+
+        if (!meshes.length) {
+          document.getElementById("loader").innerText = "No se encontró geometría en chasis.glb";
+          return;
+        }
+
+        rootMesh = new BABYLON.TransformNode("rootModel", scene);
+
+        meshes.forEach(mesh => {
+          if (mesh instanceof BABYLON.Mesh) {
+            mesh.parent = rootMesh;
+            mesh.receiveShadows = true;
+          }
+        });
+
+        // Rotación para modelo de CAD
+        rootMesh.rotation.x = -Math.PI / 2;
+
+        scene.executeWhenReady(() => {
+          updateBounds();
+          fitModel();
+          document.getElementById("loader").style.display = "none";
+        });
+      }).catch((err) => {
+        console.error(err);
+        document.getElementById("loader").innerText = "Error cargando chasis.glb";
+      });
+
+      return scene;
     };
 
-    const corners = {
-      tfl: { theta: -35,  phi:  50, dist: DIST },
-      tfr: { theta:  35,  phi:  50, dist: DIST },
-      tbl: { theta:-145,  phi:  50, dist: DIST },
-      tbr: { theta: 145,  phi:  50, dist: DIST },
+    function createAxes(size) {
+      const axisX = BABYLON.MeshBuilder.CreateLines("axisX", {
+        points: [BABYLON.Vector3.Zero(), new BABYLON.Vector3(size, 0, 0)]
+      }, scene);
+      axisX.color = new BABYLON.Color3(1, 0, 0);
 
-      bfl: { theta: -35,  phi: 130, dist: DIST },
-      bfr: { theta:  35,  phi: 130, dist: DIST },
-      bbl: { theta:-145,  phi: 130, dist: DIST },
-      bbr: { theta: 145,  phi: 130, dist: DIST }
-    };
+      const axisY = BABYLON.MeshBuilder.CreateLines("axisY", {
+        points: [BABYLON.Vector3.Zero(), new BABYLON.Vector3(0, size, 0)]
+      }, scene);
+      axisY.color = new BABYLON.Color3(0, 1, 0);
 
-    function applyOrbit(theta, phi, dist){
-      viewer.cameraTarget = 'auto auto auto';
-      viewer.cameraOrbit = `${theta}deg ${phi}deg ${dist}`;
-      rotateCube(theta, phi);
+      const axisZ = BABYLON.MeshBuilder.CreateLines("axisZ", {
+        points: [BABYLON.Vector3.Zero(), new BABYLON.Vector3(0, 0, size)]
+      }, scene);
+      axisZ.color = new BABYLON.Color3(0, 0.7, 1);
     }
 
-    function setView(name){
-      const v = views[name];
-      if (!v) return;
-      applyOrbit(v.theta, v.phi, v.dist);
+    function updateBounds() {
+      if (!rootMesh) return;
+
+      let min = new BABYLON.Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
+      let max = new BABYLON.Vector3(-Number.MAX_VALUE, -Number.MAX_VALUE, -Number.MAX_VALUE);
+
+      rootMesh.getChildMeshes().forEach(mesh => {
+        const info = mesh.getBoundingInfo();
+        const bmin = info.boundingBox.minimumWorld;
+        const bmax = info.boundingBox.maximumWorld;
+
+        min = BABYLON.Vector3.Minimize(min, bmin);
+        max = BABYLON.Vector3.Maximize(max, bmax);
+      });
+
+      modelMin = min;
+      modelMax = max;
+      modelCenter = min.add(max).scale(0.5);
+
+      const extent = max.subtract(min);
+      modelRadius = Math.max(extent.x, extent.y, extent.z) * 0.9;
+      if (modelRadius < 0.1) modelRadius = 1;
+
+      camera.target = modelCenter.clone();
     }
 
-    function setCorner(name){
-      const v = corners[name];
-      if (!v) return;
-      applyOrbit(v.theta, v.phi, v.dist);
+    function animateCamera(alpha, beta, radius) {
+      BABYLON.Animation.CreateAndStartAnimation(
+        "camAlpha",
+        camera,
+        "alpha",
+        60,
+        18,
+        camera.alpha,
+        alpha,
+        0,
+        new BABYLON.CubicEase()
+      );
+
+      BABYLON.Animation.CreateAndStartAnimation(
+        "camBeta",
+        camera,
+        "beta",
+        60,
+        18,
+        camera.beta,
+        beta,
+        0,
+        new BABYLON.CubicEase()
+      );
+
+      BABYLON.Animation.CreateAndStartAnimation(
+        "camRadius",
+        camera,
+        "radius",
+        60,
+        18,
+        camera.radius,
+        radius,
+        0,
+        new BABYLON.CubicEase()
+      );
+
+      BABYLON.Animation.CreateAndStartAnimation(
+        "camTarget",
+        camera,
+        "target",
+        60,
+        18,
+        camera.target.clone(),
+        modelCenter.clone(),
+        0,
+        new BABYLON.CubicEase()
+      );
     }
 
-    function axisView(axis){
-      if(axis === 'x')  return applyOrbit( 90,  90, DIST);
-      if(axis === '-x') return applyOrbit(-90,  90, DIST);
-      if(axis === 'y')  return applyOrbit(  0,   1, DIST_FAR);
-      if(axis === '-y') return applyOrbit(  0, 179, DIST_FAR);
-      if(axis === 'z')  return applyOrbit(  0,  90, DIST);
-      if(axis === '-z') return applyOrbit(180,  90, DIST);
+    function fitModel() {
+      if (!modelCenter) return;
+      updateBounds();
+      const radius = modelRadius * 2.4;
+      animateCamera(
+        BABYLON.Tools.ToRadians(45),
+        BABYLON.Tools.ToRadians(65),
+        radius
+      );
     }
 
-    function resetView(){
-      applyOrbit(45, 62, DIST);
+    function zoomFar() {
+      if (!modelCenter) return;
+      animateCamera(camera.alpha, camera.beta, modelRadius * 4.8);
     }
 
-    function toggleAR(){
-      if (viewer.canActivateAR) {
-        viewer.activateAR();
-      } else {
-        alert('La realidad aumentada depende de la compatibilidad del celular. Si no abre, el visor 3D seguirá funcionando normal.');
-      }
+    function setFrontView() {
+      animateCamera(BABYLON.Tools.ToRadians(0), BABYLON.Tools.ToRadians(90), modelRadius * 2.2);
     }
 
-    function rotateCube(theta, phi){
-      const rx = Math.max(-89, Math.min(89, 90 - phi));
-      const ry = theta;
-      navCube.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
+    function setBackView() {
+      animateCamera(BABYLON.Tools.ToRadians(180), BABYLON.Tools.ToRadians(90), modelRadius * 2.2);
     }
 
-    viewer.addEventListener('camera-change', () => {
-      const orbit = viewer.getCameraOrbit();
-      if (!orbit) return;
+    function setLeftView() {
+      animateCamera(BABYLON.Tools.ToRadians(-90), BABYLON.Tools.ToRadians(90), modelRadius * 2.2);
+    }
 
-      const thetaDeg = orbit.theta * 180 / Math.PI;
-      const phiDeg = orbit.phi * 180 / Math.PI;
-      rotateCube(thetaDeg, phiDeg);
+    function setRightView() {
+      animateCamera(BABYLON.Tools.ToRadians(90), BABYLON.Tools.ToRadians(90), modelRadius * 2.2);
+    }
+
+    function setTopView() {
+      animateCamera(BABYLON.Tools.ToRadians(0), BABYLON.Tools.ToRadians(10), modelRadius * 2.8);
+    }
+
+    function setBottomView() {
+      animateCamera(BABYLON.Tools.ToRadians(0), BABYLON.Tools.ToRadians(170), modelRadius * 2.8);
+    }
+
+    function setIsoView() {
+      animateCamera(BABYLON.Tools.ToRadians(45), BABYLON.Tools.ToRadians(60), modelRadius * 2.4);
+    }
+
+    function setFreeView() {
+      animateCamera(BABYLON.Tools.ToRadians(30), BABYLON.Tools.ToRadians(75), modelRadius * 2.6);
+    }
+
+    function axisView(axis) {
+      if (axis === "x") setRightView();
+      if (axis === "-x") setLeftView();
+      if (axis === "y") setTopView();
+      if (axis === "-y") setBottomView();
+      if (axis === "z") setFrontView();
+      if (axis === "-z") setBackView();
+    }
+
+    createScene().then((scene) => {
+      engine.runRenderLoop(() => {
+        scene.render();
+      });
     });
 
-    viewer.addEventListener('load', () => {
-      resetView();
+    window.addEventListener("resize", () => {
+      engine.resize();
     });
   </script>
 </body>
