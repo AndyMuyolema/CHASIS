@@ -1,330 +1,523 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visor 3D Chasis UPS</title>
 
-<title>Visor 3D Chasis UPS</title>
+  <script src="https://cdn.babylonjs.com/babylon.js"></script>
+  <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
-<script src="https://cdn.babylonjs.com/babylon.js"></script>
-<script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+  <style>
+    :root{
+      --bg1:#020617;
+      --bg2:#0f172a;
+      --panel:#0b1220dd;
+      --text:#e5eefc;
+      --muted:#9fb3d1;
+      --btn:#1e293b;
+      --btn-hover:#334155;
+    }
 
-<script type="module"
-src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    *{ box-sizing:border-box; }
 
-<style>
+    html, body{
+      width:100%;
+      height:100%;
+      margin:0;
+      overflow:hidden;
+      font-family:Arial, Helvetica, sans-serif;
+      background:linear-gradient(180deg,var(--bg2),var(--bg1));
+      color:var(--text);
+    }
 
-body{
-margin:0;
-overflow:hidden;
-font-family:Arial;
-background:#020617;
-color:white;
-}
+    #app{
+      position:relative;
+      width:100%;
+      height:100%;
+    }
 
-#renderCanvas{
-width:100vw;
-height:100vh;
-display:block;
-touch-action:none;
-}
+    #renderCanvas{
+      width:100%;
+      height:100%;
+      display:block;
+      touch-action:none;
+      background:#020617;
+      outline:none;
+      cursor:grab;
+    }
 
-.topbar{
-position:absolute;
-top:0;
-left:0;
-right:0;
-height:60px;
-display:flex;
-align-items:center;
-gap:10px;
-padding-left:20px;
-background:#0f172a;
-z-index:10;
-}
+    #renderCanvas:active{
+      cursor:grabbing;
+    }
 
-.topbar img{
-height:40px;
-}
+    .topbar{
+      position:absolute;
+      top:0;
+      left:0;
+      right:0;
+      z-index:20;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:10px 14px;
+      background:linear-gradient(180deg,#0b1630ee,#0b1630cc);
+      border-bottom:1px solid #1e293b;
+      backdrop-filter:blur(8px);
+    }
 
-.panel{
-position:absolute;
-bottom:15px;
-left:50%;
-transform:translateX(-50%);
-display:flex;
-gap:10px;
-background:#0f172acc;
-padding:10px;
-border-radius:10px;
-}
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width:0;
+    }
 
-button{
-padding:8px 14px;
-background:#1e293b;
-color:white;
-border:none;
-border-radius:6px;
-cursor:pointer;
-}
+    .brand img{
+      width:44px;
+      height:44px;
+      object-fit:contain;
+      border-radius:10px;
+      background:#fff;
+      padding:4px;
+      border:1px solid #cbd5e1;
+    }
 
-button:hover{
-background:#334155;
-}
+    .brand h1{
+      margin:0;
+      font-size:20px;
+      line-height:1.1;
+    }
 
-.loader{
-position:absolute;
-top:0;
-left:0;
-right:0;
-bottom:0;
-display:flex;
-align-items:center;
-justify-content:center;
-background:#020617;
-font-size:20px;
-}
+    .brand p{
+      margin:4px 0 0;
+      font-size:12px;
+      color:var(--muted);
+    }
 
-</style>
+    .panel{
+      position:absolute;
+      left:50%;
+      transform:translateX(-50%);
+      bottom:16px;
+      z-index:20;
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:center;
+      gap:8px;
+      padding:10px;
+      width:min(95vw,900px);
+      border-radius:16px;
+      background:var(--panel);
+      backdrop-filter:blur(8px);
+    }
+
+    button{
+      border:none;
+      border-radius:10px;
+      padding:10px 14px;
+      background:var(--btn);
+      color:white;
+      cursor:pointer;
+      font-size:14px;
+      border:1px solid #334155;
+    }
+
+    button:hover{
+      background:var(--btn-hover);
+    }
+
+    .status{
+      position:absolute;
+      right:14px;
+      bottom:16px;
+      z-index:20;
+      max-width:300px;
+      padding:10px 12px;
+      border-radius:14px;
+      background:var(--panel);
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.45;
+      backdrop-filter:blur(8px);
+    }
+
+    .loader{
+      position:absolute;
+      inset:0;
+      z-index:30;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:rgba(2,6,23,.88);
+      color:#fff;
+      font-size:18px;
+    }
+
+    #arLauncher{
+      position:absolute;
+      width:1px;
+      height:1px;
+      opacity:0;
+      pointer-events:none;
+    }
+
+    @media (max-width: 900px){
+      .brand h1{ font-size:17px; }
+      .brand img{ width:38px; height:38px; }
+      .status{ display:none; }
+      .panel{ bottom:12px; }
+    }
+  </style>
 </head>
-
 <body>
-
-<div class="topbar">
-
-<img src="logo-ups.png">
-
-<h3>Visor 3D de Chasis</h3>
-
-</div>
-
-<canvas id="renderCanvas"></canvas>
-
-<model-viewer
-id="arViewer"
-src="Chasis2.0.glb"
-ar
-ar-modes="scene-viewer webxr quick-look"
-camera-controls
-style="width:1px;height:1px;opacity:0;">
-</model-viewer>
-
-<div class="panel">
-
-<button onclick="fitModel()">Centrar</button>
-
-<button onclick="zoomOut()">Alejar</button>
-
-<button onclick="openAR()">AR</button>
-
-</div>
-
-<div id="loader" class="loader">
-
-Cargando modelo...
-
-</div>
-
-<script>
-
-const canvas = document.getElementById("renderCanvas")
-
-const engine = new BABYLON.Engine(canvas,true)
-
-let scene
-let camera
-let rootMesh
-
-let modelCenter = BABYLON.Vector3.Zero()
-
-let modelRadius = 1
-
-function createScene(){
-
-scene = new BABYLON.Scene(engine)
-
-scene.clearColor = new BABYLON.Color4(0.02,0.04,0.08,1)
-
-camera = new BABYLON.ArcRotateCamera(
-
-"camera",
-
-BABYLON.Tools.ToRadians(45),
-
-BABYLON.Tools.ToRadians(60),
-
-10,
-
-BABYLON.Vector3.Zero(),
-
-scene
-
-)
-
-camera.attachControl(canvas,true)
-
-camera.inertia = 0
-
-camera.angularSensibilityX = 4200
-camera.angularSensibilityY = 4200
-
-camera.panningSensibility = 180
-
-camera.wheelDeltaPercentage = 0.004
-camera.pinchDeltaPercentage = 0.004
-
-camera.lowerRadiusLimit = 0.5
-camera.upperRadiusLimit = 100
-
-camera.lowerBetaLimit = 0.03
-camera.upperBetaLimit = Math.PI - 0.03
-
-const light = new BABYLON.HemisphericLight(
-
-"light",
-
-new BABYLON.Vector3(0,1,0),
-
-scene
-
-)
-
-light.intensity = 1
-
-loadModel()
-
-return scene
-
-}
-
-async function loadModel(){
-
-try{
-
-const result = await BABYLON.SceneLoader.ImportMeshAsync(
-
-"",
-
-"./",
-
-"Chasis2.0.glb",
-
-scene
-
-)
-
-rootMesh = new BABYLON.TransformNode("root",scene)
-
-result.meshes.forEach(m=>{
-
-if(m instanceof BABYLON.Mesh){
-
-m.parent = rootMesh
-
-}
-
-})
-
-scene.executeWhenReady(()=>{
-
-calculateBounds()
-
-fitModel()
-
-document.getElementById("loader").style.display="none"
-
-})
-
-}
-
-catch(e){
-
-console.error(e)
-
-document.getElementById("loader").innerText="Error cargando modelo"
-
-}
-
-}
-
-function calculateBounds(){
-
-let min = new BABYLON.Vector3(Number.MAX_VALUE,Number.MAX_VALUE,Number.MAX_VALUE)
-
-let max = new BABYLON.Vector3(-Number.MAX_VALUE,-Number.MAX_VALUE,-Number.MAX_VALUE)
-
-rootMesh.getChildMeshes().forEach(mesh=>{
-
-const b = mesh.getBoundingInfo()
-
-min = BABYLON.Vector3.Minimize(min,b.boundingBox.minimumWorld)
-
-max = BABYLON.Vector3.Maximize(max,b.boundingBox.maximumWorld)
-
-})
-
-modelCenter = min.add(max).scale(0.5)
-
-const size = max.subtract(min)
-
-modelRadius = Math.max(size.x,size.y,size.z)
-
-camera.target = modelCenter.clone()
-
-}
-
-function fitModel(){
-
-camera.alpha = BABYLON.Tools.ToRadians(45)
-
-camera.beta = BABYLON.Tools.ToRadians(60)
-
-camera.radius = Math.max(modelRadius*2.2,8)
-
-camera.target = modelCenter.clone()
-
-}
-
-function zoomOut(){
-
-camera.radius = Math.min(modelRadius*3.5,80)
-
-}
-
-function openAR(){
-
-const viewer = document.getElementById("arViewer")
-
-if(viewer.canActivateAR){
-
-viewer.activateAR()
-
-}
-
-else{
-
-alert("AR disponible solo en celular compatible")
-
-}
-
-}
-
-createScene()
-
-engine.runRenderLoop(()=>{
-
-scene.render()
-
-})
-
-window.addEventListener("resize",()=>{
-
-engine.resize()
-
-})
-
-</script>
-
+  <div id="app">
+    <div class="topbar">
+      <div class="brand">
+        <img src="logo-ups.png" alt="Logo UPS">
+        <div>
+          <h1>Visor 3D de Chasis</h1>
+          <p>Navegación suave · iluminación mejorada · AR integrada</p>
+        </div>
+      </div>
+    </div>
+
+    <canvas id="renderCanvas" tabindex="1"></canvas>
+
+    <model-viewer
+      id="arLauncher"
+      src="Chasis2.0.glb"
+      ar
+      ar-modes="scene-viewer webxr quick-look"
+      ar-scale="fixed"
+      camera-controls
+      exposure="1"
+      shadow-intensity="1"
+      environment-image="neutral"
+      style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;">
+    </model-viewer>
+
+    <div class="panel">
+      <button onclick="fitModel()">Centrar</button>
+      <button onclick="frontView()">Frontal</button>
+      <button onclick="sideView()">Lateral</button>
+      <button onclick="topView()">Superior</button>
+      <button onclick="isoView()">Esquina</button>
+      <button onclick="zoomOut()">Alejar</button>
+      <button onclick="openAR()">Abrir AR</button>
+    </div>
+
+    <div class="status">
+      1 dedo / clic izquierdo: rotar<br>
+      2 dedos / Shift + arrastrar: mover<br>
+      Pellizco / rueda: zoom<br>
+      Doble clic: centrar donde toques
+    </div>
+
+    <div class="loader" id="loader">Cargando modelo...</div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("renderCanvas");
+    const engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
+
+    let scene, camera, rootMesh = null;
+    let modelCenter = BABYLON.Vector3.Zero();
+    let modelRadius = 1;
+
+    async function createScene() {
+      scene = new BABYLON.Scene(engine);
+      scene.clearColor = new BABYLON.Color4(0.01, 0.03, 0.08, 1);
+
+      camera = new BABYLON.ArcRotateCamera(
+        "camera",
+        BABYLON.Tools.ToRadians(45),
+        BABYLON.Tools.ToRadians(60),
+        12,
+        BABYLON.Vector3.Zero(),
+        scene
+      );
+
+      camera.attachControl(canvas, true);
+
+      // Movimiento más suave y más sensible
+      camera.inertia = 0.82;
+      camera.angularSensibilityX = 2600;
+      camera.angularSensibilityY = 2600;
+      camera.panningSensibility = 110;
+      camera.wheelDeltaPercentage = 0.007;
+      camera.pinchDeltaPercentage = 0.007;
+
+      camera.lowerRadiusLimit = 0.5;
+      camera.upperRadiusLimit = 90;
+      camera.lowerBetaLimit = 0.03;
+      camera.upperBetaLimit = Math.PI - 0.03;
+
+      camera.useAutoRotationBehavior = false;
+      camera.useBouncingBehavior = false;
+      camera.allowUpsideDown = false;
+      camera.panningAxis = new BABYLON.Vector3(1, 1, 1);
+
+      if ("zoomToMouseLocation" in camera) {
+        camera.zoomToMouseLocation = true;
+      }
+
+      if (camera.inputs?.attached?.pointers) {
+        camera.inputs.attached.pointers.pinchPrecision = 120;
+        camera.inputs.attached.pointers.multiTouchPanAndZoom = true;
+        camera.inputs.attached.pointers.buttons = [0, 1, 2];
+      }
+
+      // Luces mejoradas
+      const hemi = new BABYLON.HemisphericLight(
+        "hemi",
+        new BABYLON.Vector3(0, 1, 0),
+        scene
+      );
+      hemi.intensity = 0.95;
+      hemi.groundColor = new BABYLON.Color3(0.08, 0.1, 0.14);
+
+      const keyLight = new BABYLON.DirectionalLight(
+        "keyLight",
+        new BABYLON.Vector3(-0.8, -1.2, -0.6),
+        scene
+      );
+      keyLight.position = new BABYLON.Vector3(25, 35, 20);
+      keyLight.intensity = 1.25;
+
+      const fillLight = new BABYLON.DirectionalLight(
+        "fillLight",
+        new BABYLON.Vector3(0.8, -0.6, 0.4),
+        scene
+      );
+      fillLight.position = new BABYLON.Vector3(-20, 18, -12);
+      fillLight.intensity = 0.55;
+
+      const rimLight = new BABYLON.PointLight(
+        "rimLight",
+        new BABYLON.Vector3(0, 18, -20),
+        scene
+      );
+      rimLight.intensity = 0.35;
+
+      // Entorno y sombreado
+      scene.environmentTexture = BABYLON.CubeTexture.CreateFromPrefilteredData(
+        "https://playground.babylonjs.com/textures/environment.env",
+        scene
+      );
+      scene.environmentIntensity = 0.9;
+      scene.imageProcessingConfiguration.contrast = 1.1;
+      scene.imageProcessingConfiguration.exposure = 1.05;
+
+      const ground = BABYLON.MeshBuilder.CreateGround(
+        "ground",
+        { width: 300, height: 300 },
+        scene
+      );
+      ground.position.y = -0.02;
+
+      const groundMat = new BABYLON.PBRMaterial("groundMat", scene);
+      groundMat.albedoColor = new BABYLON.Color3(0.05, 0.07, 0.11);
+      groundMat.roughness = 0.92;
+      groundMat.metallic = 0.02;
+      ground.material = groundMat;
+
+      await loadModel();
+      setupFocus();
+
+      return scene;
+    }
+
+    async function loadModel() {
+      try {
+        const result = await BABYLON.SceneLoader.ImportMeshAsync(
+          "",
+          "./",
+          "Chasis2.0.glb",
+          scene
+        );
+
+        const meshes = result.meshes.filter(m => m.name !== "__root__");
+
+        if (!meshes.length) {
+          document.getElementById("loader").innerText = "No se encontró geometría en Chasis2.0.glb";
+          return;
+        }
+
+        rootMesh = new BABYLON.TransformNode("rootModel", scene);
+
+        meshes.forEach(mesh => {
+          if (mesh instanceof BABYLON.AbstractMesh) {
+            mesh.parent = rootMesh;
+            mesh.isPickable = true;
+
+            if (mesh.material && mesh.material.getClassName && mesh.material.getClassName() !== "PBRMaterial") {
+              const pbr = new BABYLON.PBRMaterial(mesh.name + "_pbr", scene);
+              pbr.albedoColor = new BABYLON.Color3(0.88, 0.88, 0.9);
+              pbr.roughness = 0.45;
+              pbr.metallic = 0.08;
+              pbr.environmentIntensity = 1;
+              mesh.material = pbr;
+            } else if (!mesh.material) {
+              const pbr = new BABYLON.PBRMaterial(mesh.name + "_pbr", scene);
+              pbr.albedoColor = new BABYLON.Color3(0.88, 0.88, 0.9);
+              pbr.roughness = 0.45;
+              pbr.metallic = 0.08;
+              pbr.environmentIntensity = 1;
+              mesh.material = pbr;
+            }
+          }
+        });
+
+        rootMesh.rotation.x = 0;
+        rootMesh.rotation.y = 0;
+        rootMesh.rotation.z = 0;
+
+        scene.executeWhenReady(() => {
+          updateBounds();
+          fitModel();
+          document.getElementById("loader").style.display = "none";
+        });
+
+      } catch (error) {
+        console.error(error);
+        document.getElementById("loader").innerText = "Error cargando el modelo";
+      }
+    }
+
+    function updateBounds() {
+      if (!rootMesh) return;
+
+      let min = new BABYLON.Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
+      let max = new BABYLON.Vector3(-Number.MAX_VALUE, -Number.MAX_VALUE, -Number.MAX_VALUE);
+
+      rootMesh.getChildMeshes().forEach(mesh => {
+        const info = mesh.getBoundingInfo();
+        min = BABYLON.Vector3.Minimize(min, info.boundingBox.minimumWorld);
+        max = BABYLON.Vector3.Maximize(max, info.boundingBox.maximumWorld);
+      });
+
+      modelCenter = min.add(max).scale(0.5);
+
+      const size = max.subtract(min);
+      modelRadius = Math.max(size.x, size.y, size.z);
+
+      if (!isFinite(modelRadius) || modelRadius < 0.1) {
+        modelRadius = 1;
+      }
+
+      camera.target = modelCenter.clone();
+    }
+
+    function animateCamera(alpha, beta, radius, target = null) {
+      const finalTarget = target ? target.clone() : modelCenter.clone();
+      const safeRadius = Math.min(Math.max(radius, 1), 70);
+
+      BABYLON.Animation.CreateAndStartAnimation(
+        "camAlpha", camera, "alpha", 60, 18, camera.alpha, alpha, 0
+      );
+      BABYLON.Animation.CreateAndStartAnimation(
+        "camBeta", camera, "beta", 60, 18, camera.beta, beta, 0
+      );
+      BABYLON.Animation.CreateAndStartAnimation(
+        "camRadius", camera, "radius", 60, 18, camera.radius, safeRadius, 0
+      );
+      BABYLON.Animation.CreateAndStartAnimation(
+        "camTarget", camera, "target", 60, 18, camera.target.clone(), finalTarget, 0
+      );
+    }
+
+    function fitModel() {
+      updateBounds();
+      animateCamera(
+        BABYLON.Tools.ToRadians(45),
+        BABYLON.Tools.ToRadians(60),
+        Math.max(modelRadius * 2.2, 10)
+      );
+    }
+
+    function zoomOut() {
+      animateCamera(
+        camera.alpha,
+        camera.beta,
+        Math.min(modelRadius * 3.2, 55),
+        camera.target.clone()
+      );
+    }
+
+    function frontView() {
+      animateCamera(
+        BABYLON.Tools.ToRadians(0),
+        BABYLON.Tools.ToRadians(90),
+        Math.max(modelRadius * 2.0, 10)
+      );
+    }
+
+    function sideView() {
+      animateCamera(
+        BABYLON.Tools.ToRadians(90),
+        BABYLON.Tools.ToRadians(90),
+        Math.max(modelRadius * 2.0, 10)
+      );
+    }
+
+    function topView() {
+      animateCamera(
+        BABYLON.Tools.ToRadians(0),
+        BABYLON.Tools.ToRadians(0.08),
+        Math.max(modelRadius * 2.4, 12)
+      );
+    }
+
+    function isoView() {
+      animateCamera(
+        BABYLON.Tools.ToRadians(45),
+        BABYLON.Tools.ToRadians(60),
+        Math.max(modelRadius * 2.2, 10)
+      );
+    }
+
+    function setupFocus() {
+      canvas.addEventListener("dblclick", () => {
+        const pick = scene.pick(scene.pointerX, scene.pointerY);
+        if (pick?.hit && pick.pickedPoint) {
+          focusOnPoint(pick.pickedPoint);
+        } else {
+          fitModel();
+        }
+      });
+    }
+
+    function focusOnPoint(point) {
+      animateCamera(
+        camera.alpha,
+        camera.beta,
+        Math.max(camera.radius * 0.82, modelRadius * 0.6),
+        point
+      );
+    }
+
+    function openAR() {
+      const launcher = document.getElementById("arLauncher");
+
+      if (launcher && launcher.canActivateAR) {
+        launcher.activateAR();
+      } else {
+        alert("La realidad aumentada no está disponible en este dispositivo o navegador. Abre la página en Chrome desde un celular compatible.");
+      }
+    }
+
+    createScene().then((createdScene) => {
+      scene = createdScene;
+      engine.runRenderLoop(() => {
+        scene.render();
+      });
+    });
+
+    window.addEventListener("resize", () => {
+      engine.resize();
+    });
+  </script>
 </body>
 </html>
