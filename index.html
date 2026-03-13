@@ -7,6 +7,7 @@
 
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
   <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
   <style>
     :root{
@@ -110,7 +111,7 @@
       justify-content:center;
       gap:8px;
       padding:10px;
-      width:min(95vw,1150px);
+      width:min(95vw,1200px);
       border-radius:16px;
       background:var(--panel);
       backdrop-filter:blur(8px);
@@ -373,6 +374,14 @@
       font-size:18px;
     }
 
+    #arLauncher{
+      position:absolute;
+      width:1px;
+      height:1px;
+      opacity:0;
+      pointer-events:none;
+    }
+
     @media (max-width: 900px){
       .brand h1{ font-size:17px; }
       .brand img{ width:38px; height:38px; }
@@ -417,6 +426,16 @@
     </div>
 
     <canvas id="renderCanvas" tabindex="1"></canvas>
+
+    <model-viewer
+      id="arLauncher"
+      src="chasis.glb"
+      ar
+      ar-modes="scene-viewer webxr quick-look"
+      camera-controls
+      exposure="1"
+      style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;">
+    </model-viewer>
 
     <div class="navcube-widget">
       <div class="navcube-title">Cubo 3D de navegación</div>
@@ -463,11 +482,14 @@
       <button onclick="fitModel()">Centrar</button>
       <button onclick="zoomFar()">Alejar más</button>
       <button onclick="clearSelection()">Quitar selección</button>
+      <button onclick="openAR()">Abrir AR</button>
     </div>
 
     <div class="status">
       Mouse: rueda para zoom<br>
       Celular: pellizco con dos dedos para zoom<br>
+      Arrastrar: rotar libremente<br>
+      Shift + arrastrar: mover/panear<br>
       Doble clic: centrar donde toques<br>
       Clic: seleccionar pieza
     </div>
@@ -625,7 +647,6 @@
       hotBL.onclick = () => goFaces(rule.cornerBL);
       hotBR.onclick = () => goFaces(rule.cornerBR);
 
-      // inclinación visual suave del cubo según la cámara
       const rx = (BABYLON.Tools.ToDegrees(camera.beta) - 90) * 0.18;
       const ry = (-BABYLON.Tools.ToDegrees(camera.alpha)) * 0.18;
       navcube.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
@@ -646,21 +667,23 @@
 
       camera.attachControl(canvas, true);
 
+      // Cámara más libre y más alejada
       camera.inertia = 0;
-      camera.angularSensibilityX = 1800;
-      camera.angularSensibilityY = 1800;
-      camera.panningSensibility = 120;
-      camera.wheelDeltaPercentage = 0.008;
-      camera.pinchDeltaPercentage = 0.008;
-      camera.lowerRadiusLimit = 0.2;
+      camera.angularSensibilityX = 1500;
+      camera.angularSensibilityY = 1500;
+      camera.panningSensibility = 80;
+      camera.wheelDeltaPercentage = 0.012;
+      camera.pinchDeltaPercentage = 0.012;
+      camera.lowerRadiusLimit = 0.1;
       camera.upperRadiusLimit = 100000;
       camera.lowerBetaLimit = 0.001;
       camera.upperBetaLimit = Math.PI - 0.001;
       camera.useAutoRotationBehavior = false;
       camera.useBouncingBehavior = false;
+      camera.allowUpsideDown = true;
 
       if (camera.inputs?.attached?.pointers) {
-        camera.inputs.attached.pointers.pinchPrecision = 120;
+        camera.inputs.attached.pointers.pinchPrecision = 70;
       }
 
       const hemi = new BABYLON.HemisphericLight("hemi", new BABYLON.Vector3(0, 1, 0), scene);
@@ -833,10 +856,10 @@
       const alpha = Math.atan2(v.x, v.z);
       const beta = Math.acos(BABYLON.Scalar.Clamp(v.y, -1, 1));
 
-      let mult = 2.2;
-      if (faces.length === 1) mult = 1.8;
-      if (faces.length === 2) mult = 2.0;
-      if (faces.length === 3) mult = 2.2;
+      let mult = 2.6;
+      if (faces.length === 1) mult = 2.2;
+      if (faces.length === 2) mult = 2.4;
+      if (faces.length === 3) mult = 2.6;
 
       setCamera(alpha, beta, modelRadius * mult);
     }
@@ -853,12 +876,12 @@
       setCamera(
         BABYLON.Tools.ToRadians(45),
         BABYLON.Tools.ToRadians(60),
-        modelRadius * 2.2
+        modelRadius * 3.0
       );
     }
 
     function zoomFar() {
-      setCamera(camera.alpha, camera.beta, modelRadius * 5.2);
+      setCamera(camera.alpha, camera.beta, modelRadius * 7.0);
     }
 
     function axisView(axis) {
@@ -868,6 +891,15 @@
       if (axis === "-y") goFaces(["bottom"]);
       if (axis === "z")  goFaces(["front"]);
       if (axis === "-z") goFaces(["back"]);
+    }
+
+    function openAR() {
+      const launcher = document.getElementById("arLauncher");
+      if (launcher && launcher.canActivateAR) {
+        launcher.activateAR();
+      } else {
+        alert("La realidad aumentada no está disponible en este dispositivo o navegador. Abre la página en Chrome desde un celular compatible.");
+      }
     }
 
     createScene().then((scene) => {
