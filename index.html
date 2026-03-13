@@ -4,7 +4,7 @@
 
 <head>
 <meta charset="UTF-8">
-<title>Chasis Automotriz 3D</title>
+<title>Visualización 3D de Chasis Automotriz</title>
 
 <script type="module"
 src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
@@ -14,7 +14,7 @@ src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 body{
 margin:0;
 font-family:Arial, Helvetica, sans-serif;
-background: linear-gradient(180deg,#0f172a,#020617);
+background:linear-gradient(180deg,#0f172a,#020617);
 color:white;
 text-align:center;
 }
@@ -22,6 +22,7 @@ text-align:center;
 h1{
 margin-top:15px;
 font-size:28px;
+letter-spacing:1px;
 }
 
 p{
@@ -47,38 +48,38 @@ margin-bottom:10px;
 <body>
 
 <h1>Visualización 3D de Chasis Automotriz</h1>
-<p>Proyecto de ingeniería – Modelo interactivo</p>
+<p>Modelo interactivo de ingeniería</p>
 
 <model-viewer
 src="chasis.glb"
-alt="Chasis automotriz"
+alt="Chasis automotriz 3D"
 
 camera-controls
+touch-action="pan-y"
 
-ar
-ar-modes="scene-viewer webxr quick-look"
+orientation="-90deg 0deg 0deg"
 
-orientation="90deg 0deg 0deg"
+camera-orbit="45deg 60deg 8m"
 
-scale="-1 1 1"
+min-camera-orbit="auto auto 3m"
+max-camera-orbit="auto auto 25m"
 
-camera-orbit="45deg 65deg 6m"
-
-min-camera-orbit="auto auto 2m"
-max-camera-orbit="auto auto 20m"
-
-field-of-view="30deg"
+field-of-view="35deg"
 
 shadow-intensity="1"
+shadow-softness="1"
 
 interaction-prompt="auto"
 
-environment-image="neutral">
+environment-image="neutral"
+
+ar
+ar-modes="scene-viewer webxr quick-look">
 
 </model-viewer>
 
 <div class="footer">
-Visualización interactiva con WebXR
+Proyecto de visualización 3D automotriz
 </div>
 
 </body>
