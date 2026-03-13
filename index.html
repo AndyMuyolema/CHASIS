@@ -318,7 +318,7 @@
         <img src="logo-ups.png" alt="Logo UPS">
         <div>
           <h1>Visor 3D Profesional de Chasis</h1>
-          <p>Babylon.js · cubo 3D funcional · cámara estable</p>
+          <p>Babylon.js · cubo 3D funcional · vista tipo SpaceClaim</p>
         </div>
       </div>
     </div>
@@ -412,7 +412,6 @@
 
       camera.attachControl(canvas, true);
 
-      // Estabilidad
       camera.inertia = 0;
       camera.angularSensibilityX = 3500;
       camera.angularSensibilityY = 3500;
@@ -422,8 +421,10 @@
 
       camera.lowerRadiusLimit = 0.2;
       camera.upperRadiusLimit = 100000;
-      camera.lowerBetaLimit = 0.05;
-      camera.upperBetaLimit = Math.PI - 0.05;
+
+      // Más libertad vertical
+      camera.lowerBetaLimit = 0.001;
+      camera.upperBetaLimit = Math.PI - 0.001;
 
       camera.useAutoRotationBehavior = false;
       camera.useBouncingBehavior = false;
@@ -469,8 +470,10 @@
           }
         });
 
-        // Corrige CAD Z-up
-        rootMesh.rotation.x = -Math.PI / 2;
+        // IMPORTANTE: dejar el chasis como viene, sin acostarlo
+        rootMesh.rotation.x = 0;
+        rootMesh.rotation.y = 0;
+        rootMesh.rotation.z = 0;
 
         scene.executeWhenReady(() => {
           updateBounds();
@@ -558,8 +561,8 @@
       if (face === "back")   setCamera(BABYLON.Tools.ToRadians(180), BABYLON.Tools.ToRadians(90), modelRadius * 1.8);
       if (face === "left")   setCamera(BABYLON.Tools.ToRadians(-90), BABYLON.Tools.ToRadians(90), modelRadius * 1.8);
       if (face === "right")  setCamera(BABYLON.Tools.ToRadians(90),  BABYLON.Tools.ToRadians(90), modelRadius * 1.8);
-      if (face === "top")    setCamera(BABYLON.Tools.ToRadians(0),   BABYLON.Tools.ToRadians(0.12), modelRadius * 2.2);
-      if (face === "bottom") setCamera(BABYLON.Tools.ToRadians(0),   BABYLON.Tools.ToRadians(Math.PI - 0.12), modelRadius * 2.2);
+      if (face === "top")    setCamera(BABYLON.Tools.ToRadians(0),   BABYLON.Tools.ToRadians(0.03), modelRadius * 2.2);
+      if (face === "bottom") setCamera(BABYLON.Tools.ToRadians(0),   BABYLON.Tools.ToRadians(Math.PI - 0.03), modelRadius * 2.2);
     }
 
     function setCorner(corner) {
@@ -617,8 +620,8 @@
       camera.alpha -= dx * 0.0035;
       camera.beta  += dy * 0.0035;
 
-      if (camera.beta < 0.05) camera.beta = 0.05;
-      if (camera.beta > Math.PI - 0.05) camera.beta = Math.PI - 0.05;
+      if (camera.beta < 0.001) camera.beta = 0.001;
+      if (camera.beta > Math.PI - 0.001) camera.beta = Math.PI - 0.001;
     });
 
     function stopCubeDrag() {
