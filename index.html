@@ -1,179 +1,557 @@
 <!DOCTYPE html>
-
 <html lang="es">
-
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visor 3D de Chasis Automotriz</title>
 
-<meta charset="UTF-8">
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
-<title>Visor 3D de Chasis Automotriz</title>
+  <style>
+    :root{
+      --bg1:#020617;
+      --bg2:#0f172a;
+      --panel:#0b1220cc;
+      --panel-solid:#0f172a;
+      --line:#334155;
+      --text:#e5eefc;
+      --muted:#9fb3d1;
+      --btn:#1e293b;
+      --btn-hover:#334155;
+      --accent:#60a5fa;
+      --cube:120px;
+    }
 
-<script type="module"
-src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    *{box-sizing:border-box}
+    html,body{
+      margin:0;
+      width:100%;
+      height:100%;
+      overflow:hidden;
+      font-family:Arial, Helvetica, sans-serif;
+      background:linear-gradient(180deg,var(--bg2),var(--bg1));
+      color:var(--text);
+    }
 
-<style>
+    #app{
+      position:relative;
+      width:100%;
+      height:100%;
+      overflow:hidden;
+    }
 
-body{
-margin:0;
-background:#020617;
-font-family:Arial;
-color:white;
-overflow:hidden;
-}
+    header{
+      position:absolute;
+      top:0;
+      left:0;
+      right:0;
+      z-index:30;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:10px 16px;
+      background:linear-gradient(180deg,#0b1630ee,#0b1630cc);
+      border-bottom:1px solid #1e293b;
+      backdrop-filter:blur(8px);
+    }
 
-header{
-position:absolute;
-top:0;
-width:100%;
-text-align:center;
-padding:12px;
-background:#0f172a;
-font-size:20px;
-z-index:10;
-}
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width:0;
+    }
 
-model-viewer{
-width:100%;
-height:100vh;
-background:#000;
-}
+    .brand img{
+      width:44px;
+      height:44px;
+      object-fit:contain;
+      background:#fff;
+      border-radius:10px;
+      padding:4px;
+      border:1px solid #cbd5e1;
+    }
 
-/* botones inferiores */
+    .brand-text{
+      min-width:0;
+    }
 
-.panel{
+    .brand-text h1{
+      margin:0;
+      font-size:20px;
+      line-height:1.1;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
 
-position:absolute;
+    .brand-text p{
+      margin:4px 0 0;
+      font-size:12px;
+      color:var(--muted);
+    }
 
-bottom:20px;
+    .top-actions{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
 
-width:100%;
+    .top-actions button{
+      border:none;
+      border-radius:10px;
+      padding:10px 12px;
+      background:var(--btn);
+      color:#fff;
+      cursor:pointer;
+      font-size:13px;
+      border:1px solid #334155;
+    }
 
-text-align:center;
+    .top-actions button:hover{
+      background:var(--btn-hover);
+    }
 
-}
+    model-viewer{
+      width:100%;
+      height:100%;
+      background:
+        radial-gradient(circle at center, rgba(59,130,246,.12), transparent 32%),
+        radial-gradient(circle at 50% 72%, rgba(255,255,255,.05), transparent 28%),
+        #000;
+      --poster-color: transparent;
+    }
 
-.panel button{
+    .bottom-panel{
+      position:absolute;
+      left:50%;
+      transform:translateX(-50%);
+      bottom:18px;
+      z-index:25;
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:center;
+      max-width:min(95vw,1000px);
+      padding:10px;
+      border-radius:16px;
+      background:var(--panel);
+      border:1px solid #23324b;
+      backdrop-filter:blur(8px);
+    }
 
-background:#1e293b;
-border:none;
+    .bottom-panel button{
+      border:none;
+      border-radius:10px;
+      padding:10px 14px;
+      background:var(--btn);
+      color:#fff;
+      cursor:pointer;
+      font-size:14px;
+      border:1px solid #334155;
+    }
 
-color:white;
+    .bottom-panel button:hover{
+      background:var(--btn-hover);
+    }
 
-padding:10px 16px;
+    .axes{
+      position:absolute;
+      left:16px;
+      bottom:18px;
+      z-index:26;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      padding:10px;
+      border-radius:14px;
+      background:var(--panel);
+      border:1px solid #23324b;
+      backdrop-filter:blur(8px);
+      min-width:88px;
+    }
 
-margin:6px;
+    .axes-title{
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:2px;
+      text-align:center;
+    }
 
-border-radius:6px;
+    .axes-grid{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:6px;
+    }
 
-cursor:pointer;
+    .axis-btn{
+      border:none;
+      border-radius:10px;
+      padding:8px 0;
+      cursor:pointer;
+      color:#fff;
+      font-weight:700;
+      font-size:13px;
+      border:1px solid rgba(255,255,255,.12);
+    }
 
-font-size:14px;
+    .axis-x{background:#7f1d1d}
+    .axis-xn{background:#991b1b}
+    .axis-y{background:#14532d}
+    .axis-yn{background:#166534}
+    .axis-z{background:#1d4ed8}
+    .axis-zn{background:#1e40af}
 
-}
+    .nav-cube-wrap{
+      position:absolute;
+      top:88px;
+      right:18px;
+      z-index:28;
+      width:200px;
+      height:220px;
+      pointer-events:none;
+    }
 
-.panel button:hover{
+    .nav-cube-wrap .label{
+      pointer-events:auto;
+      position:absolute;
+      top:0;
+      right:0;
+      left:0;
+      text-align:center;
+      font-size:12px;
+      color:var(--muted);
+      text-shadow:0 1px 2px #000;
+    }
 
-background:#334155;
+    .cube-stage{
+      position:absolute;
+      top:20px;
+      left:50%;
+      transform:translateX(-50%);
+      width:var(--cube);
+      height:var(--cube);
+      perspective:700px;
+      pointer-events:none;
+    }
 
-}
+    .cube{
+      position:relative;
+      width:100%;
+      height:100%;
+      transform-style:preserve-3d;
+      transform:rotateX(-22deg) rotateY(35deg);
+      transition:transform .35s ease;
+      pointer-events:none;
+    }
 
-</style>
+    .face{
+      position:absolute;
+      width:var(--cube);
+      height:var(--cube);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:700;
+      letter-spacing:.5px;
+      color:#fff;
+      border:1px solid rgba(255,255,255,.18);
+      box-shadow:inset 0 0 20px rgba(255,255,255,.08);
+      backdrop-filter:blur(3px);
+      pointer-events:auto;
+      cursor:pointer;
+      user-select:none;
+    }
 
+    .face:hover{
+      filter:brightness(1.15);
+    }
+
+    .front { background:rgba(59,130,246,.55); transform:translateZ(calc(var(--cube) / 2)); }
+    .back  { background:rgba(148,163,184,.38); transform:rotateY(180deg) translateZ(calc(var(--cube) / 2)); }
+    .right { background:rgba(34,197,94,.45); transform:rotateY(90deg) translateZ(calc(var(--cube) / 2)); }
+    .left  { background:rgba(244,63,94,.45); transform:rotateY(-90deg) translateZ(calc(var(--cube) / 2)); }
+    .top   { background:rgba(14,165,233,.50); transform:rotateX(90deg) translateZ(calc(var(--cube) / 2)); }
+    .bottom{ background:rgba(168,85,247,.45); transform:rotateX(-90deg) translateZ(calc(var(--cube) / 2)); }
+
+    .corner-btn{
+      position:absolute;
+      width:22px;
+      height:22px;
+      border-radius:50%;
+      border:2px solid rgba(255,255,255,.9);
+      background:rgba(255,255,255,.16);
+      box-shadow:0 0 0 1px rgba(0,0,0,.45), 0 0 12px rgba(96,165,250,.25);
+      cursor:pointer;
+      pointer-events:auto;
+      backdrop-filter:blur(4px);
+    }
+
+    .corner-btn:hover{
+      background:rgba(96,165,250,.45);
+      transform:scale(1.08);
+    }
+
+    .c1{ top:36px; left:58px; }   /* top front left */
+    .c2{ top:36px; right:58px; }  /* top front right */
+    .c3{ top:72px; left:24px; }   /* top back left */
+    .c4{ top:72px; right:24px; }  /* top back right */
+
+    .c5{ top:122px; left:58px; }  /* bottom front left */
+    .c6{ top:122px; right:58px; } /* bottom front right */
+    .c7{ top:156px; left:24px; }  /* bottom back left */
+    .c8{ top:156px; right:24px; } /* bottom back right */
+
+    .hint{
+      position:absolute;
+      right:18px;
+      top:312px;
+      z-index:27;
+      max-width:200px;
+      padding:10px 12px;
+      border-radius:12px;
+      background:var(--panel);
+      border:1px solid #23324b;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.35;
+      backdrop-filter:blur(8px);
+    }
+
+    @media (max-width: 900px){
+      .nav-cube-wrap{
+        width:170px;
+        height:190px;
+        top:82px;
+        right:10px;
+      }
+
+      .cube-stage{
+        transform:translateX(-50%) scale(.82);
+        transform-origin:top center;
+      }
+
+      .hint{
+        display:none;
+      }
+
+      header{
+        padding:10px 12px;
+      }
+
+      .brand-text h1{
+        font-size:17px;
+      }
+
+      .brand img{
+        width:38px;
+        height:38px;
+      }
+
+      .top-actions{
+        display:none;
+      }
+
+      .bottom-panel{
+        bottom:14px;
+        width:min(95vw,760px);
+      }
+
+      .axes{
+        left:10px;
+        bottom:96px;
+      }
+    }
+  </style>
 </head>
-
 <body>
+  <div id="app">
+    <header>
+      <div class="brand">
+        <img src="logo-ups.png" alt="Logo Universidad Politécnica Salesiana">
+        <div class="brand-text">
+          <h1>Visor 3D de Chasis Automotriz</h1>
+          <p>Universidad Politécnica Salesiana · Modelo interactivo y realidad aumentada</p>
+        </div>
+      </div>
 
-<header>
+      <div class="top-actions">
+        <button onclick="resetView()">Centrar</button>
+        <button onclick="toggleAR()">AR</button>
+      </div>
+    </header>
 
-Visor 3D de Chasis Automotriz
+    <model-viewer
+      id="viewer"
+      src="chasis.glb"
+      alt="Chasis automotriz 3D"
+      camera-controls
+      disable-tap
+      interaction-prompt="none"
+      orientation="-90deg 0deg 0deg"
+      camera-target="auto auto auto"
+      camera-orbit="45deg 62deg 180%"
+      min-camera-orbit="auto 1deg 5%"
+      max-camera-orbit="auto 179deg 1200%"
+      field-of-view="32deg"
+      min-field-of-view="12deg"
+      max-field-of-view="65deg"
+      interpolation-decay="120"
+      shadow-intensity="1.15"
+      shadow-softness="0.9"
+      exposure="1.05"
+      environment-image="neutral"
+      ar
+      ar-modes="scene-viewer webxr quick-look"
+      ar-scale="auto">
+    </model-viewer>
 
-</header>
+    <div class="nav-cube-wrap">
+      <div class="label">Cubo 3D de navegación</div>
 
-<model-viewer
+      <div class="cube-stage">
+        <div class="cube" id="navCube">
+          <div class="face front"  onclick="setView('front')">FRONT</div>
+          <div class="face back"   onclick="setView('back')">BACK</div>
+          <div class="face right"  onclick="setView('right')">RIGHT</div>
+          <div class="face left"   onclick="setView('left')">LEFT</div>
+          <div class="face top"    onclick="setView('top')">TOP</div>
+          <div class="face bottom" onclick="setView('bottom')">BOTTOM</div>
+        </div>
+      </div>
 
-id="visor"
+      <button class="corner-btn c1" onclick="setCorner('tfl')" title="Top Front Left"></button>
+      <button class="corner-btn c2" onclick="setCorner('tfr')" title="Top Front Right"></button>
+      <button class="corner-btn c3" onclick="setCorner('tbl')" title="Top Back Left"></button>
+      <button class="corner-btn c4" onclick="setCorner('tbr')" title="Top Back Right"></button>
+      <button class="corner-btn c5" onclick="setCorner('bfl')" title="Bottom Front Left"></button>
+      <button class="corner-btn c6" onclick="setCorner('bfr')" title="Bottom Front Right"></button>
+      <button class="corner-btn c7" onclick="setCorner('bbl')" title="Bottom Back Left"></button>
+      <button class="corner-btn c8" onclick="setCorner('bbr')" title="Bottom Back Right"></button>
+    </div>
 
-src="chasis.glb"
+    <div class="hint">
+      Toca las caras, esquinas o ejes para ir directo a esa vista. Con el dedo puedes girar libremente en diagonal, recto o como quieras.
+    </div>
 
-alt="Chasis Automotriz"
+    <div class="axes">
+      <div class="axes-title">Ejes</div>
+      <div class="axes-grid">
+        <button class="axis-btn axis-x"  onclick="axisView('x')">X</button>
+        <button class="axis-btn axis-xn" onclick="axisView('-x')">-X</button>
+        <button class="axis-btn axis-y"  onclick="axisView('y')">Y</button>
+        <button class="axis-btn axis-yn" onclick="axisView('-y')">-Y</button>
+        <button class="axis-btn axis-z"  onclick="axisView('z')">Z</button>
+        <button class="axis-btn axis-zn" onclick="axisView('-z')">-Z</button>
+      </div>
+    </div>
 
-camera-controls
+    <div class="bottom-panel">
+      <button onclick="setView('front')">Frontal</button>
+      <button onclick="setView('left')">Izquierda</button>
+      <button onclick="setView('right')">Derecha</button>
+      <button onclick="setView('top')">Superior</button>
+      <button onclick="setCorner('tfr')">Esquina</button>
+      <button onclick="resetView()">Centrar</button>
+      <button onclick="toggleAR()">Abrir AR</button>
+    </div>
+  </div>
 
-scale="0.05 0.05 0.05"
+  <script>
+    const viewer = document.getElementById('viewer');
+    const navCube = document.getElementById('navCube');
 
-orientation="-90deg 0deg 0deg"
+    const DIST = '180%';
+    const DIST_FAR = '260%';
 
-camera-target="auto auto auto"
+    const views = {
+      front:  { theta:   0, phi:  90, dist: DIST },
+      back:   { theta: 180, phi:  90, dist: DIST },
+      right:  { theta:  90, phi:  90, dist: DIST },
+      left:   { theta: -90, phi:  90, dist: DIST },
+      top:    { theta:   0, phi:   1, dist: DIST_FAR },
+      bottom: { theta:   0, phi: 179, dist: DIST_FAR },
 
-camera-orbit="45deg 65deg 120%"
+      x:      { theta:  90, phi:  90, dist: DIST },
+      nx:     { theta: -90, phi:  90, dist: DIST },
+      y:      { theta:   0, phi:   1, dist: DIST_FAR },
+      ny:     { theta:   0, phi: 179, dist: DIST_FAR },
+      z:      { theta:   0, phi:  90, dist: DIST },
+      nz:     { theta: 180, phi:  90, dist: DIST }
+    };
 
-min-camera-orbit="auto auto 50%"
+    const corners = {
+      tfl: { theta: -35,  phi:  50, dist: DIST },
+      tfr: { theta:  35,  phi:  50, dist: DIST },
+      tbl: { theta:-145,  phi:  50, dist: DIST },
+      tbr: { theta: 145,  phi:  50, dist: DIST },
 
-max-camera-orbit="auto auto 500%"
+      bfl: { theta: -35,  phi: 130, dist: DIST },
+      bfr: { theta:  35,  phi: 130, dist: DIST },
+      bbl: { theta:-145,  phi: 130, dist: DIST },
+      bbr: { theta: 145,  phi: 130, dist: DIST }
+    };
 
-field-of-view="35deg"
+    function applyOrbit(theta, phi, dist){
+      viewer.cameraTarget = 'auto auto auto';
+      viewer.cameraOrbit = `${theta}deg ${phi}deg ${dist}`;
+      rotateCube(theta, phi);
+    }
 
-interaction-prompt="none"
+    function setView(name){
+      const v = views[name];
+      if (!v) return;
+      applyOrbit(v.theta, v.phi, v.dist);
+    }
 
-shadow-intensity="1"
+    function setCorner(name){
+      const v = corners[name];
+      if (!v) return;
+      applyOrbit(v.theta, v.phi, v.dist);
+    }
 
-environment-image="neutral"
+    function axisView(axis){
+      if(axis === 'x')  return applyOrbit( 90,  90, DIST);
+      if(axis === '-x') return applyOrbit(-90,  90, DIST);
+      if(axis === 'y')  return applyOrbit(  0,   1, DIST_FAR);
+      if(axis === '-y') return applyOrbit(  0, 179, DIST_FAR);
+      if(axis === 'z')  return applyOrbit(  0,  90, DIST);
+      if(axis === '-z') return applyOrbit(180,  90, DIST);
+    }
 
-ar
-ar-modes="scene-viewer webxr quick-look">
+    function resetView(){
+      applyOrbit(45, 62, DIST);
+    }
 
-</model-viewer>
+    function toggleAR(){
+      if (viewer.canActivateAR) {
+        viewer.activateAR();
+      } else {
+        alert('La realidad aumentada depende de la compatibilidad del celular. Si no abre, el visor 3D seguirá funcionando normal.');
+      }
+    }
 
-<div class="panel">
+    function rotateCube(theta, phi){
+      const rx = Math.max(-89, Math.min(89, 90 - phi));
+      const ry = theta;
+      navCube.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
+    }
 
-<button onclick="vistaFrontal()">Vista frontal</button>
+    viewer.addEventListener('camera-change', () => {
+      const orbit = viewer.getCameraOrbit();
+      if (!orbit) return;
 
-<button onclick="vistaLateral()">Vista lateral</button>
+      const thetaDeg = orbit.theta * 180 / Math.PI;
+      const phiDeg = orbit.phi * 180 / Math.PI;
+      rotateCube(thetaDeg, phiDeg);
+    });
 
-<button onclick="vistaSuperior()">Vista superior</button>
-
-<button onclick="vistaEsquina()">Vista esquina</button>
-
-<button onclick="centrar()">Centrar</button>
-
-</div>
-
-<script>
-
-const visor = document.getElementById("visor")
-
-function vistaFrontal(){
-
-visor.cameraOrbit = "0deg 90deg 120%"
-
-}
-
-function vistaLateral(){
-
-visor.cameraOrbit = "90deg 90deg 120%"
-
-}
-
-function vistaSuperior(){
-
-visor.cameraOrbit = "0deg 5deg 120%"
-
-}
-
-function vistaEsquina(){
-
-visor.cameraOrbit = "45deg 60deg 120%"
-
-}
-
-function centrar(){
-
-visor.cameraOrbit = "45deg 65deg 120%"
-
-}
-
-</script>
-
+    viewer.addEventListener('load', () => {
+      resetView();
+    });
+  </script>
 </body>
-
 </html>
