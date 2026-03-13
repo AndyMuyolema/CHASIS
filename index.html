@@ -7,7 +7,6 @@
 
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
   <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
-  <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
 
   <style>
     :root{
@@ -19,6 +18,7 @@
       --btn:#1e293b;
       --btn-hover:#334155;
       --cube-size:84px;
+      --half-cube:42px;
     }
 
     *{box-sizing:border-box}
@@ -174,8 +174,8 @@
       top:78px;
       right:14px;
       z-index:35;
-      width:210px;
-      height:255px;
+      width:220px;
+      height:270px;
       padding:10px;
       border-radius:14px;
       background:var(--panel);
@@ -187,13 +187,13 @@
       text-align:center;
       font-size:12px;
       color:var(--muted);
-      margin-bottom:6px;
+      margin-bottom:8px;
     }
 
     .cube-area{
       position:relative;
       width:100%;
-      height:185px;
+      height:195px;
       overflow:visible;
     }
 
@@ -231,46 +231,51 @@
       box-shadow:inset 0 0 18px rgba(255,255,255,.07);
       pointer-events:auto;
       cursor:pointer;
+      backface-visibility:visible;
     }
 
-    .front { background:rgba(59,130,246,.60); transform:translateZ(calc(var(--cube-size)/2)); }
-    .back  { background:rgba(148,163,184,.38); transform:rotateY(180deg) translateZ(calc(var(--cube-size)/2)); }
-    .right { background:rgba(34,197,94,.50); transform:rotateY(90deg) translateZ(calc(var(--cube-size)/2)); }
-    .left  { background:rgba(244,63,94,.50); transform:rotateY(-90deg) translateZ(calc(var(--cube-size)/2)); }
-    .top   { background:rgba(14,165,233,.55); transform:rotateX(90deg) translateZ(calc(var(--cube-size)/2)); }
-    .bottom{ background:rgba(168,85,247,.50); transform:rotateX(-90deg) translateZ(calc(var(--cube-size)/2)); }
+    .front { background:rgba(59,130,246,.60); transform:translateZ(var(--half-cube)); }
+    .back  { background:rgba(148,163,184,.38); transform:rotateY(180deg) translateZ(var(--half-cube)); }
+    .right { background:rgba(34,197,94,.50); transform:rotateY(90deg) translateZ(var(--half-cube)); }
+    .left  { background:rgba(244,63,94,.50); transform:rotateY(-90deg) translateZ(var(--half-cube)); }
+    .top   { background:rgba(14,165,233,.55); transform:rotateX(90deg) translateZ(var(--half-cube)); }
+    .bottom{ background:rgba(168,85,247,.50); transform:rotateX(-90deg) translateZ(var(--half-cube)); }
 
-    .corner{
+    .corner3d{
       position:absolute;
-      width:18px;
-      height:18px;
+      width:14px;
+      height:14px;
       border-radius:50%;
-      border:2px solid rgba(255,255,255,.95);
-      background:rgba(255,255,255,.16);
-      box-shadow:0 0 0 1px rgba(0,0,0,.45);
+      background:#fff;
+      border:2px solid #111827;
+      box-shadow:0 0 0 1px rgba(255,255,255,.25);
       cursor:pointer;
       pointer-events:auto;
+      transform-style:preserve-3d;
+      margin-left:-7px;
+      margin-top:-7px;
     }
 
-    .corner:hover{
-      background:rgba(96,165,250,.45);
-      transform:scale(1.08);
+    .corner3d:hover{
+      background:#60a5fa;
+      transform:scale(1.15);
     }
 
-    .c1{ top:34px; left:68px; }
-    .c2{ top:34px; right:68px; }
-    .c3{ top:64px; left:36px; }
-    .c4{ top:64px; right:36px; }
-    .c5{ top:112px; left:68px; }
-    .c6{ top:112px; right:68px; }
-    .c7{ top:142px; left:36px; }
-    .c8{ top:142px; right:36px; }
+    .c-tfr{ transform:translate3d(42px,-42px,42px); }
+    .c-tfl{ transform:translate3d(-42px,-42px,42px); }
+    .c-tbr{ transform:translate3d(42px,-42px,-42px); }
+    .c-tbl{ transform:translate3d(-42px,-42px,-42px); }
+
+    .c-bfr{ transform:translate3d(42px,42px,42px); }
+    .c-bfl{ transform:translate3d(-42px,42px,42px); }
+    .c-bbr{ transform:translate3d(42px,42px,-42px); }
+    .c-bbl{ transform:translate3d(-42px,42px,-42px); }
 
     .cube-help{
       text-align:center;
       font-size:11px;
       color:var(--muted);
-      margin-top:6px;
+      margin-top:8px;
     }
 
     .loader{
@@ -290,13 +295,13 @@
       .brand img{ width:38px; height:38px; }
 
       .cube-widget{
-        width:180px;
-        height:235px;
+        width:190px;
+        height:245px;
         top:72px;
         right:10px;
       }
 
-      .cube-area{ height:168px; }
+      .cube-area{ height:170px; }
 
       .axes{
         left:10px;
@@ -320,7 +325,7 @@
         <img src="logo-ups.png" alt="Logo UPS">
         <div>
           <h1>Visor 3D Profesional de Chasis</h1>
-          <p>Babylon.js · gizmo XYZ · doble clic para centrar · selección de piezas</p>
+          <p>Babylon.js · vértices reales en el cubo · doble clic · selección</p>
         </div>
       </div>
     </div>
@@ -339,20 +344,21 @@
             <div class="face left" onclick="setFace('left')">LEFT</div>
             <div class="face top" onclick="setFace('top')">TOP</div>
             <div class="face bottom" onclick="setFace('bottom')">BOTTOM</div>
+
+            <div class="corner3d c-tfr" onclick="setCorner('tfr')"></div>
+            <div class="corner3d c-tfl" onclick="setCorner('tfl')"></div>
+            <div class="corner3d c-tbr" onclick="setCorner('tbr')"></div>
+            <div class="corner3d c-tbl" onclick="setCorner('tbl')"></div>
+
+            <div class="corner3d c-bfr" onclick="setCorner('bfr')"></div>
+            <div class="corner3d c-bfl" onclick="setCorner('bfl')"></div>
+            <div class="corner3d c-bbr" onclick="setCorner('bbr')"></div>
+            <div class="corner3d c-bbl" onclick="setCorner('bbl')"></div>
           </div>
         </div>
-
-        <div class="corner c1" onclick="setCorner('tfl')"></div>
-        <div class="corner c2" onclick="setCorner('tfr')"></div>
-        <div class="corner c3" onclick="setCorner('tbl')"></div>
-        <div class="corner c4" onclick="setCorner('tbr')"></div>
-        <div class="corner c5" onclick="setCorner('bfl')"></div>
-        <div class="corner c6" onclick="setCorner('bfr')"></div>
-        <div class="corner c7" onclick="setCorner('bbl')"></div>
-        <div class="corner c8" onclick="setCorner('bbr')"></div>
       </div>
 
-      <div class="cube-help">Toca o arrastra el cubo</div>
+      <div class="cube-help">Toca caras o vértices reales del cubo</div>
     </div>
 
     <div class="axes">
@@ -395,7 +401,6 @@
     let modelRadius = 1;
     let selectedMesh = null;
     let selectedOriginalMaterial = null;
-    let gizmoManager = null;
 
     const navCube = document.getElementById("navCube");
     const cubeDragArea = document.getElementById("cubeDragArea");
@@ -419,7 +424,6 @@
 
       camera.attachControl(canvas, true);
 
-      // Sensibilidad equilibrada
       camera.inertia = 0;
       camera.angularSensibilityX = 1800;
       camera.angularSensibilityY = 1800;
@@ -429,7 +433,6 @@
 
       camera.lowerRadiusLimit = 0.2;
       camera.upperRadiusLimit = 100000;
-
       camera.lowerBetaLimit = 0.001;
       camera.upperBetaLimit = Math.PI - 0.001;
 
@@ -459,7 +462,7 @@
       ground.position.y = -0.02;
 
       createAxesLines(3);
-      createGizmo();
+      setupPicking();
 
       try {
         const result = await BABYLON.SceneLoader.ImportMeshAsync("", "./", "chasis.glb", scene);
@@ -482,8 +485,6 @@
         rootMesh.rotation.x = 0;
         rootMesh.rotation.y = 0;
         rootMesh.rotation.z = 0;
-
-        setupPicking();
 
         scene.executeWhenReady(() => {
           updateBounds();
@@ -519,32 +520,6 @@
       axisZ.color = new BABYLON.Color3(0, 0.7, 1);
     }
 
-    function createGizmo() {
-      gizmoManager = new BABYLON.GizmoManager(scene);
-      gizmoManager.positionGizmoEnabled = false;
-      gizmoManager.rotationGizmoEnabled = false;
-      gizmoManager.scaleGizmoEnabled = false;
-      gizmoManager.boundingBoxGizmoEnabled = false;
-
-      const x = BABYLON.MeshBuilder.CreateLines("gx", {
-        points:[BABYLON.Vector3.Zero(), new BABYLON.Vector3(1.8,0,0)]
-      }, scene);
-      x.color = new BABYLON.Color3(1,0,0);
-      x.isPickable = false;
-
-      const y = BABYLON.MeshBuilder.CreateLines("gy", {
-        points:[BABYLON.Vector3.Zero(), new BABYLON.Vector3(0,1.8,0)]
-      }, scene);
-      y.color = new BABYLON.Color3(0,1,0);
-      y.isPickable = false;
-
-      const z = BABYLON.MeshBuilder.CreateLines("gz", {
-        points:[BABYLON.Vector3.Zero(), new BABYLON.Vector3(0,0,1.8)]
-      }, scene);
-      z.color = new BABYLON.Color3(0,0.7,1);
-      z.isPickable = false;
-    }
-
     function setupPicking() {
       scene.onPointerObservable.add((pointerInfo) => {
         if (pointerInfo.type !== BABYLON.PointerEventTypes.POINTERPICK) return;
@@ -558,7 +533,7 @@
         selectMesh(mesh);
       });
 
-      canvas.addEventListener("dblclick", (evt) => {
+      canvas.addEventListener("dblclick", () => {
         const pick = scene.pick(scene.pointerX, scene.pointerY);
         if (pick?.hit && pick.pickedPoint) {
           centerOnPoint(pick.pickedPoint);
@@ -590,9 +565,7 @@
     }
 
     function centerOnPoint(point) {
-      const distance = camera.radius;
       camera.target = point.clone();
-      camera.radius = distance;
     }
 
     function updateBounds() {
