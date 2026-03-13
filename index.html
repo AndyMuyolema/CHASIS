@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Visor 3D Chasis UPS</title>
+  <title>Visor 3D de Chasis</title>
 
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
   <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
@@ -133,7 +133,7 @@
       right:14px;
       bottom:16px;
       z-index:20;
-      max-width:300px;
+      max-width:320px;
       padding:10px 12px;
       border-radius:14px;
       background:var(--panel);
@@ -195,6 +195,7 @@
       exposure="1"
       shadow-intensity="1"
       environment-image="neutral"
+      interaction-prompt="auto"
       style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;">
     </model-viewer>
 
@@ -209,10 +210,11 @@
     </div>
 
     <div class="status">
-      1 dedo / clic izquierdo: rotar<br>
-      2 dedos / Shift + arrastrar: mover<br>
-      Pellizco / rueda: zoom<br>
-      Doble clic: centrar donde toques
+      Clic izquierdo: rotar<br>
+      Shift + arrastrar: mover<br>
+      Rueda: zoom<br>
+      Doble clic: centrar en la zona tocada<br>
+      Celular: 1 dedo rota, 2 dedos zoom/pan
     </div>
 
     <div class="loader" id="loader">Cargando modelo...</div>
@@ -225,39 +227,43 @@
     let scene, camera, rootMesh = null;
     let modelCenter = BABYLON.Vector3.Zero();
     let modelRadius = 1;
+    let modelHeight = 1;
+
+    let isShiftPanning = false;
+    let panPointerId = null;
+    let lastPanX = 0;
+    let lastPanY = 0;
 
     async function createScene() {
       scene = new BABYLON.Scene(engine);
-      scene.clearColor = new BABYLON.Color4(0.01, 0.03, 0.08, 1);
+      scene.clearColor = new BABYLON.Color4(0.02, 0.04, 0.08, 1);
 
       camera = new BABYLON.ArcRotateCamera(
         "camera",
         BABYLON.Tools.ToRadians(45),
         BABYLON.Tools.ToRadians(60),
-        12,
+        18,
         BABYLON.Vector3.Zero(),
         scene
       );
 
       camera.attachControl(canvas, true);
 
-      // Movimiento más suave y más sensible
-      camera.inertia = 0.82;
-      camera.angularSensibilityX = 2600;
-      camera.angularSensibilityY = 2600;
-      camera.panningSensibility = 110;
-      camera.wheelDeltaPercentage = 0.007;
-      camera.pinchDeltaPercentage = 0.007;
+      // Controles suaves y estables
+      camera.inertia = 0.78;
+      camera.angularSensibilityX = 2400;
+      camera.angularSensibilityY = 2400;
+      camera.wheelDeltaPercentage = 0.008;
+      camera.pinchDeltaPercentage = 0.008;
 
-      camera.lowerRadiusLimit = 0.5;
-      camera.upperRadiusLimit = 90;
-      camera.lowerBetaLimit = 0.03;
-      camera.upperBetaLimit = Math.PI - 0.03;
+      camera.lowerRadiusLimit = 2;
+      camera.upperRadiusLimit = 60;
+      camera.lowerBetaLimit = 0.05;
+      camera.upperBetaLimit = Math.PI - 0.05;
 
       camera.useAutoRotationBehavior = false;
       camera.useBouncingBehavior = false;
       camera.allowUpsideDown = false;
-      camera.panningAxis = new BABYLON.Vector3(1, 1, 1);
 
       if ("zoomToMouseLocation" in camera) {
         camera.zoomToMouseLocation = true;
@@ -266,10 +272,9 @@
       if (camera.inputs?.attached?.pointers) {
         camera.inputs.attached.pointers.pinchPrecision = 120;
         camera.inputs.attached.pointers.multiTouchPanAndZoom = true;
-        camera.inputs.attached.pointers.buttons = [0, 1, 2];
       }
 
-      // Luces mejoradas
+      // Iluminación mejorada
       const hemi = new BABYLON.HemisphericLight(
         "hemi",
         new BABYLON.Vector3(0, 1, 0),
@@ -301,14 +306,13 @@
       );
       rimLight.intensity = 0.35;
 
-      // Entorno y sombreado
       scene.environmentTexture = BABYLON.CubeTexture.CreateFromPrefilteredData(
         "https://playground.babylonjs.com/textures/environment.env",
         scene
       );
       scene.environmentIntensity = 0.9;
-      scene.imageProcessingConfiguration.contrast = 1.1;
-      scene.imageProcessingConfiguration.exposure = 1.05;
+      scene.imageProcessingConfiguration.contrast = 1.08;
+      scene.imageProcessingConfiguration.exposure = 1.02;
 
       const ground = BABYLON.MeshBuilder.CreateGround(
         "ground",
@@ -319,12 +323,12 @@
 
       const groundMat = new BABYLON.PBRMaterial("groundMat", scene);
       groundMat.albedoColor = new BABYLON.Color3(0.05, 0.07, 0.11);
-      groundMat.roughness = 0.92;
+      groundMat.roughness = 0.94;
       groundMat.metallic = 0.02;
       ground.material = groundMat;
 
       await loadModel();
-      setupFocus();
+      setupInteractions();
 
       return scene;
     }
@@ -338,43 +342,33 @@
           scene
         );
 
-        const meshes = result.meshes.filter(m => m.name !== "__root__");
+        const importedMeshes = result.meshes.filter(m => m instanceof BABYLON.AbstractMesh);
 
-        if (!meshes.length) {
+        if (!importedMeshes.length) {
           document.getElementById("loader").innerText = "No se encontró geometría en Chasis2.0.glb";
           return;
         }
 
         rootMesh = new BABYLON.TransformNode("rootModel", scene);
 
-        meshes.forEach(mesh => {
-          if (mesh instanceof BABYLON.AbstractMesh) {
+        importedMeshes.forEach(mesh => {
+          if (mesh.name !== "__root__") {
             mesh.parent = rootMesh;
             mesh.isPickable = true;
 
-            if (mesh.material && mesh.material.getClassName && mesh.material.getClassName() !== "PBRMaterial") {
+            if (!mesh.material) {
               const pbr = new BABYLON.PBRMaterial(mesh.name + "_pbr", scene);
-              pbr.albedoColor = new BABYLON.Color3(0.88, 0.88, 0.9);
+              pbr.albedoColor = new BABYLON.Color3(0.9, 0.9, 0.92);
               pbr.roughness = 0.45;
-              pbr.metallic = 0.08;
-              pbr.environmentIntensity = 1;
-              mesh.material = pbr;
-            } else if (!mesh.material) {
-              const pbr = new BABYLON.PBRMaterial(mesh.name + "_pbr", scene);
-              pbr.albedoColor = new BABYLON.Color3(0.88, 0.88, 0.9);
-              pbr.roughness = 0.45;
-              pbr.metallic = 0.08;
+              pbr.metallic = 0.06;
               pbr.environmentIntensity = 1;
               mesh.material = pbr;
             }
           }
         });
 
-        rootMesh.rotation.x = 0;
-        rootMesh.rotation.y = 0;
-        rootMesh.rotation.z = 0;
-
         scene.executeWhenReady(() => {
+          normalizeModel();
           updateBounds();
           fitModel();
           document.getElementById("loader").style.display = "none";
@@ -386,9 +380,7 @@
       }
     }
 
-    function updateBounds() {
-      if (!rootMesh) return;
-
+    function getRootBounds() {
       let min = new BABYLON.Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
       let max = new BABYLON.Vector3(-Number.MAX_VALUE, -Number.MAX_VALUE, -Number.MAX_VALUE);
 
@@ -398,21 +390,55 @@
         max = BABYLON.Vector3.Maximize(max, info.boundingBox.maximumWorld);
       });
 
+      return { min, max };
+    }
+
+    function normalizeModel() {
+      if (!rootMesh) return;
+
+      rootMesh.computeWorldMatrix(true);
+      let { min, max } = getRootBounds();
+      let size = max.subtract(min);
+      let maxDim = Math.max(size.x, size.y, size.z);
+
+      if (maxDim > 0.001) {
+        const desiredSize = 10;
+        const scale = desiredSize / maxDim;
+        rootMesh.scaling = new BABYLON.Vector3(scale, scale, scale);
+      }
+
+      rootMesh.computeWorldMatrix(true);
+      ({ min, max } = getRootBounds());
+
+      const center = min.add(max).scale(0.5);
+      const bottom = min.y;
+
+      rootMesh.position.x -= center.x;
+      rootMesh.position.z -= center.z;
+      rootMesh.position.y -= bottom;
+
+      rootMesh.computeWorldMatrix(true);
+    }
+
+    function updateBounds() {
+      if (!rootMesh) return;
+
+      const { min, max } = getRootBounds();
       modelCenter = min.add(max).scale(0.5);
 
       const size = max.subtract(min);
       modelRadius = Math.max(size.x, size.y, size.z);
+      modelHeight = size.y;
 
-      if (!isFinite(modelRadius) || modelRadius < 0.1) {
-        modelRadius = 1;
-      }
+      if (!isFinite(modelRadius) || modelRadius < 0.1) modelRadius = 10;
+      if (!isFinite(modelHeight) || modelHeight < 0.1) modelHeight = 5;
 
-      camera.target = modelCenter.clone();
+      camera.target = new BABYLON.Vector3(0, modelHeight * 0.45, 0);
     }
 
     function animateCamera(alpha, beta, radius, target = null) {
-      const finalTarget = target ? target.clone() : modelCenter.clone();
-      const safeRadius = Math.min(Math.max(radius, 1), 70);
+      const finalTarget = target ? target.clone() : new BABYLON.Vector3(0, modelHeight * 0.45, 0);
+      const safeRadius = Math.min(Math.max(radius, 2), 55);
 
       BABYLON.Animation.CreateAndStartAnimation(
         "camAlpha", camera, "alpha", 60, 18, camera.alpha, alpha, 0
@@ -433,7 +459,7 @@
       animateCamera(
         BABYLON.Tools.ToRadians(45),
         BABYLON.Tools.ToRadians(60),
-        Math.max(modelRadius * 2.2, 10)
+        Math.max(modelRadius * 1.8, 12)
       );
     }
 
@@ -441,7 +467,7 @@
       animateCamera(
         camera.alpha,
         camera.beta,
-        Math.min(modelRadius * 3.2, 55),
+        Math.min(camera.radius * 1.35, 40),
         camera.target.clone()
       );
     }
@@ -450,7 +476,7 @@
       animateCamera(
         BABYLON.Tools.ToRadians(0),
         BABYLON.Tools.ToRadians(90),
-        Math.max(modelRadius * 2.0, 10)
+        Math.max(modelRadius * 1.7, 11)
       );
     }
 
@@ -458,15 +484,15 @@
       animateCamera(
         BABYLON.Tools.ToRadians(90),
         BABYLON.Tools.ToRadians(90),
-        Math.max(modelRadius * 2.0, 10)
+        Math.max(modelRadius * 1.7, 11)
       );
     }
 
     function topView() {
       animateCamera(
         BABYLON.Tools.ToRadians(0),
-        BABYLON.Tools.ToRadians(0.08),
-        Math.max(modelRadius * 2.4, 12)
+        BABYLON.Tools.ToRadians(0.12),
+        Math.max(modelRadius * 2.0, 14)
       );
     }
 
@@ -474,11 +500,11 @@
       animateCamera(
         BABYLON.Tools.ToRadians(45),
         BABYLON.Tools.ToRadians(60),
-        Math.max(modelRadius * 2.2, 10)
+        Math.max(modelRadius * 1.8, 12)
       );
     }
 
-    function setupFocus() {
+    function setupInteractions() {
       canvas.addEventListener("dblclick", () => {
         const pick = scene.pick(scene.pointerX, scene.pointerY);
         if (pick?.hit && pick.pickedPoint) {
@@ -487,13 +513,57 @@
           fitModel();
         }
       });
+
+      canvas.addEventListener("pointerdown", (e) => {
+        if (e.button === 0 && e.shiftKey) {
+          isShiftPanning = true;
+          panPointerId = e.pointerId;
+          lastPanX = e.clientX;
+          lastPanY = e.clientY;
+          try { canvas.setPointerCapture(e.pointerId); } catch {}
+          camera.detachControl(canvas);
+          e.preventDefault();
+        }
+      });
+
+      canvas.addEventListener("pointermove", (e) => {
+        if (!isShiftPanning || e.pointerId !== panPointerId) return;
+
+        const dx = e.clientX - lastPanX;
+        const dy = e.clientY - lastPanY;
+        lastPanX = e.clientX;
+        lastPanY = e.clientY;
+
+        const forward = camera.target.subtract(camera.position).normalize();
+        const right = BABYLON.Vector3.Cross(forward, camera.upVector).normalize();
+        const up = BABYLON.Vector3.Cross(right, forward).normalize();
+
+        const scale = camera.radius * 0.0015;
+        const move = right.scale(-dx * scale).add(up.scale(dy * scale));
+
+        camera.target.addInPlace(move);
+        e.preventDefault();
+      });
+
+      function stopShiftPan(e) {
+        if (!isShiftPanning) return;
+        if (panPointerId !== null && e.pointerId !== undefined && e.pointerId !== panPointerId) return;
+
+        isShiftPanning = false;
+        panPointerId = null;
+        camera.attachControl(canvas, true);
+      }
+
+      canvas.addEventListener("pointerup", stopShiftPan);
+      canvas.addEventListener("pointercancel", stopShiftPan);
+      canvas.addEventListener("pointerleave", stopShiftPan);
     }
 
     function focusOnPoint(point) {
       animateCamera(
         camera.alpha,
         camera.beta,
-        Math.max(camera.radius * 0.82, modelRadius * 0.6),
+        Math.max(camera.radius * 0.85, 8),
         point
       );
     }
@@ -504,7 +574,7 @@
       if (launcher && launcher.canActivateAR) {
         launcher.activateAR();
       } else {
-        alert("La realidad aumentada no está disponible en este dispositivo o navegador. Abre la página en Chrome desde un celular compatible.");
+        alert("La realidad aumentada no está disponible en este dispositivo o navegador. Ábrelo en Chrome desde un celular compatible.");
       }
     }
 
