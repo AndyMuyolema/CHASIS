@@ -7,6 +7,7 @@
 
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
   <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+  <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
 
   <style>
     :root{
@@ -44,6 +45,7 @@
       display:block;
       touch-action:none;
       background:#030712;
+      outline:none;
     }
 
     .topbar{
@@ -102,7 +104,7 @@
       justify-content:center;
       gap:8px;
       padding:10px;
-      width:min(95vw,1050px);
+      width:min(95vw,1120px);
       border-radius:16px;
       background:var(--panel);
       backdrop-filter:blur(8px);
@@ -157,13 +159,13 @@
       right:14px;
       bottom:16px;
       z-index:30;
-      max-width:250px;
+      max-width:280px;
       padding:10px 12px;
       border-radius:14px;
       background:var(--panel);
       color:var(--muted);
       font-size:12px;
-      line-height:1.35;
+      line-height:1.4;
       backdrop-filter:blur(8px);
     }
 
@@ -318,12 +320,12 @@
         <img src="logo-ups.png" alt="Logo UPS">
         <div>
           <h1>Visor 3D Profesional de Chasis</h1>
-          <p>Babylon.js · cubo 3D funcional · vista tipo SpaceClaim</p>
+          <p>Babylon.js · gizmo XYZ · doble clic para centrar · selección de piezas</p>
         </div>
       </div>
     </div>
 
-    <canvas id="renderCanvas"></canvas>
+    <canvas id="renderCanvas" tabindex="1"></canvas>
 
     <div class="cube-widget">
       <div class="cube-title">Cubo 3D de navegación</div>
@@ -371,12 +373,14 @@
       <button onclick="setCorner('tfr')">Vista esquina</button>
       <button onclick="fitModel()">Centrar</button>
       <button onclick="zoomFar()">Alejar más</button>
+      <button onclick="clearSelection()">Quitar selección</button>
     </div>
 
     <div class="status">
-      1 dedo: rotar<br>
-      2 dedos: mover y zoom<br>
-      También puedes arrastrar el cubo 3D
+      Mouse: rueda para zoom<br>
+      Celular: pellizco con dos dedos para zoom<br>
+      Doble clic: centrar donde toques<br>
+      Clic: seleccionar pieza
     </div>
 
     <div class="loader" id="loader">Cargando modelo 3D...</div>
@@ -389,6 +393,9 @@
     let scene, camera, rootMesh = null;
     let modelCenter = BABYLON.Vector3.Zero();
     let modelRadius = 1;
+    let selectedMesh = null;
+    let selectedOriginalMaterial = null;
+    let gizmoManager = null;
 
     const navCube = document.getElementById("navCube");
     const cubeDragArea = document.getElementById("cubeDragArea");
@@ -412,17 +419,17 @@
 
       camera.attachControl(canvas, true);
 
+      // Sensibilidad equilibrada
       camera.inertia = 0;
-      camera.angularSensibilityX = 3500;
-      camera.angularSensibilityY = 3500;
-      camera.panningSensibility = 220;
-      camera.wheelDeltaPercentage = 0.003;
-      camera.pinchDeltaPercentage = 0.003;
+      camera.angularSensibilityX = 1800;
+      camera.angularSensibilityY = 1800;
+      camera.panningSensibility = 120;
+      camera.wheelDeltaPercentage = 0.008;
+      camera.pinchDeltaPercentage = 0.008;
 
       camera.lowerRadiusLimit = 0.2;
       camera.upperRadiusLimit = 100000;
 
-      // Más libertad vertical
       camera.lowerBetaLimit = 0.001;
       camera.upperBetaLimit = Math.PI - 0.001;
 
@@ -430,7 +437,7 @@
       camera.useBouncingBehavior = false;
 
       if (camera.inputs?.attached?.pointers) {
-        camera.inputs.attached.pointers.pinchPrecision = 200;
+        camera.inputs.attached.pointers.pinchPrecision = 120;
       }
 
       const hemi = new BABYLON.HemisphericLight("hemi", new BABYLON.Vector3(0, 1, 0), scene);
@@ -452,6 +459,7 @@
       ground.position.y = -0.02;
 
       createAxesLines(3);
+      createGizmo();
 
       try {
         const result = await BABYLON.SceneLoader.ImportMeshAsync("", "./", "chasis.glb", scene);
@@ -467,13 +475,15 @@
         meshes.forEach(mesh => {
           if (mesh instanceof BABYLON.AbstractMesh) {
             mesh.parent = rootMesh;
+            mesh.isPickable = true;
           }
         });
 
-        // IMPORTANTE: dejar el chasis como viene, sin acostarlo
         rootMesh.rotation.x = 0;
         rootMesh.rotation.y = 0;
         rootMesh.rotation.z = 0;
+
+        setupPicking();
 
         scene.executeWhenReady(() => {
           updateBounds();
@@ -507,6 +517,82 @@
         points: [BABYLON.Vector3.Zero(), new BABYLON.Vector3(0, 0, size)]
       }, scene);
       axisZ.color = new BABYLON.Color3(0, 0.7, 1);
+    }
+
+    function createGizmo() {
+      gizmoManager = new BABYLON.GizmoManager(scene);
+      gizmoManager.positionGizmoEnabled = false;
+      gizmoManager.rotationGizmoEnabled = false;
+      gizmoManager.scaleGizmoEnabled = false;
+      gizmoManager.boundingBoxGizmoEnabled = false;
+
+      const x = BABYLON.MeshBuilder.CreateLines("gx", {
+        points:[BABYLON.Vector3.Zero(), new BABYLON.Vector3(1.8,0,0)]
+      }, scene);
+      x.color = new BABYLON.Color3(1,0,0);
+      x.isPickable = false;
+
+      const y = BABYLON.MeshBuilder.CreateLines("gy", {
+        points:[BABYLON.Vector3.Zero(), new BABYLON.Vector3(0,1.8,0)]
+      }, scene);
+      y.color = new BABYLON.Color3(0,1,0);
+      y.isPickable = false;
+
+      const z = BABYLON.MeshBuilder.CreateLines("gz", {
+        points:[BABYLON.Vector3.Zero(), new BABYLON.Vector3(0,0,1.8)]
+      }, scene);
+      z.color = new BABYLON.Color3(0,0.7,1);
+      z.isPickable = false;
+    }
+
+    function setupPicking() {
+      scene.onPointerObservable.add((pointerInfo) => {
+        if (pointerInfo.type !== BABYLON.PointerEventTypes.POINTERPICK) return;
+
+        const pick = pointerInfo.pickInfo;
+        if (!pick?.hit || !pick.pickedMesh) return;
+
+        const mesh = pick.pickedMesh;
+        if (!mesh || mesh.name === "ground") return;
+
+        selectMesh(mesh);
+      });
+
+      canvas.addEventListener("dblclick", (evt) => {
+        const pick = scene.pick(scene.pointerX, scene.pointerY);
+        if (pick?.hit && pick.pickedPoint) {
+          centerOnPoint(pick.pickedPoint);
+        } else {
+          fitModel();
+        }
+      });
+    }
+
+    function selectMesh(mesh) {
+      clearSelection();
+
+      selectedMesh = mesh;
+      selectedOriginalMaterial = mesh.material || null;
+
+      const hl = new BABYLON.StandardMaterial("selectedMat", scene);
+      hl.diffuseColor = new BABYLON.Color3(1, 0.75, 0.1);
+      hl.emissiveColor = new BABYLON.Color3(0.35, 0.2, 0);
+      hl.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+      mesh.material = hl;
+    }
+
+    function clearSelection() {
+      if (selectedMesh) {
+        selectedMesh.material = selectedOriginalMaterial;
+        selectedMesh = null;
+        selectedOriginalMaterial = null;
+      }
+    }
+
+    function centerOnPoint(point) {
+      const distance = camera.radius;
+      camera.target = point.clone();
+      camera.radius = distance;
     }
 
     function updateBounds() {
@@ -617,8 +703,8 @@
       lastX = e.clientX;
       lastY = e.clientY;
 
-      camera.alpha -= dx * 0.0035;
-      camera.beta  += dy * 0.0035;
+      camera.alpha -= dx * 0.0045;
+      camera.beta  += dy * 0.0045;
 
       if (camera.beta < 0.001) camera.beta = 0.001;
       if (camera.beta > Math.PI - 0.001) camera.beta = Math.PI - 0.001;
