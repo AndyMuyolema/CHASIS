@@ -4,7 +4,7 @@
 
 <head>
 <meta charset="UTF-8">
-<title>Visualización 3D de Chasis Automotriz</title>
+<title>Visor de Chasis Automotriz</title>
 
 <script type="module"
 src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
@@ -13,31 +13,45 @@ src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
 body{
 margin:0;
-font-family:Arial, Helvetica, sans-serif;
-background:linear-gradient(180deg,#0f172a,#020617);
+font-family:Arial;
+background:#0f172a;
 color:white;
+}
+
+header{
+padding:10px;
+background:#020617;
 text-align:center;
+font-size:20px;
 }
 
-h1{
-margin-top:15px;
-font-size:26px;
-}
-
-p{
-color:#cbd5f5;
-}
-
-model-viewer{
+#viewer{
 width:100%;
-height:88vh;
-background-color:#020617;
+height:80vh;
+background:#000;
 }
 
-.footer{
-font-size:13px;
-color:#94a3b8;
-margin-bottom:10px;
+.panel{
+display:flex;
+flex-wrap:wrap;
+justify-content:center;
+background:#020617;
+padding:10px;
+}
+
+button{
+margin:5px;
+padding:10px 14px;
+border:none;
+border-radius:6px;
+background:#1e293b;
+color:white;
+cursor:pointer;
+font-size:14px;
+}
+
+button:hover{
+background:#334155;
 }
 
 </style>
@@ -46,41 +60,60 @@ margin-bottom:10px;
 
 <body>
 
-<h1>Visualización 3D de Chasis Automotriz</h1>
-<p>Modelo interactivo de ingeniería</p>
+<header>Visor 3D de Chasis Automotriz</header>
 
 <model-viewer
+id="viewer"
 src="chasis.glb"
-alt="Chasis automotriz 3D"
+alt="Modelo 3D"
 
 camera-controls
-touch-action="pan-y"
-
 orientation="-90deg 0deg 0deg"
 
 camera-orbit="30deg 75deg 10m"
-camera-target="0m 0m 0m"
-
-min-camera-orbit="auto auto 3m"
-max-camera-orbit="auto auto 60m"
-
-field-of-view="45deg"
 
 shadow-intensity="1"
-shadow-softness="1"
-
-interaction-prompt="auto"
 
 environment-image="neutral"
+
+interaction-prompt="auto"
 
 ar
 ar-modes="scene-viewer webxr quick-look">
 
 </model-viewer>
 
-<div class="footer">
-Proyecto de visualización 3D automotriz
+<div class="panel">
+
+<button onclick="frontal()">Vista frontal</button> <button onclick="lateral()">Vista lateral</button> <button onclick="superior()">Vista superior</button> <button onclick="centrar()">Centrar</button> <button onclick="rotar()">Auto rotar</button>
+
 </div>
+
+<script>
+
+const visor = document.querySelector("#viewer")
+
+function frontal(){
+visor.cameraOrbit = "0deg 75deg 10m"
+}
+
+function lateral(){
+visor.cameraOrbit = "90deg 75deg 10m"
+}
+
+function superior(){
+visor.cameraOrbit = "0deg 10deg 10m"
+}
+
+function centrar(){
+visor.cameraOrbit = "30deg 75deg 10m"
+}
+
+function rotar(){
+visor.autoRotate = true
+}
+
+</script>
 
 </body>
 </html>
