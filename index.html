@@ -54,6 +54,11 @@
       touch-action:none;
       background:#030712;
       outline:none;
+      cursor:grab;
+    }
+
+    #renderCanvas:active{
+      cursor:grabbing;
     }
 
     .topbar{
@@ -111,7 +116,7 @@
       justify-content:center;
       gap:8px;
       padding:10px;
-      width:min(95vw,1200px);
+      width:min(95vw,1250px);
       border-radius:16px;
       background:var(--panel);
       backdrop-filter:blur(8px);
@@ -166,13 +171,13 @@
       right:14px;
       bottom:16px;
       z-index:30;
-      max-width:290px;
+      max-width:320px;
       padding:10px 12px;
       border-radius:14px;
       background:var(--panel);
       color:var(--muted);
       font-size:12px;
-      line-height:1.4;
+      line-height:1.45;
       backdrop-filter:blur(8px);
     }
 
@@ -420,7 +425,7 @@
         <img src="logo-ups.png" alt="Logo UPS">
         <div>
           <h1>Visor 3D Profesional de Chasis</h1>
-          <p>Cubo tipo Inventor · aristas y esquinas funcionales · sincronizado con la vista</p>
+          <p>Movimiento tipo Sketchfab · cubo tipo Inventor · AR integrada</p>
         </div>
       </div>
     </div>
@@ -486,12 +491,12 @@
     </div>
 
     <div class="status">
-      Mouse: rueda para zoom<br>
-      Celular: pellizco con dos dedos para zoom<br>
-      Arrastrar: rotar libremente<br>
-      Shift + arrastrar: mover/panear<br>
-      Doble clic: centrar donde toques<br>
-      Clic: seleccionar pieza
+      Web tipo Sketchfab:<br>
+      • arrastrar = orbitar<br>
+      • Shift + arrastrar = panear<br>
+      • rueda = zoom al cursor<br>
+      • doble clic = enfocar<br>
+      • móvil: 1 dedo rota, 2 dedos zoom/pan
     </div>
 
     <div class="loader" id="loader">Cargando modelo 3D...</div>
@@ -506,6 +511,7 @@
     let modelRadius = 1;
     let selectedMesh = null;
     let selectedOriginalMaterial = null;
+    let highlightLayer = null;
 
     const cubeFrontFace = document.getElementById("cubeFrontFace");
     const cubeTopFace = document.getElementById("cubeTopFace");
@@ -667,23 +673,33 @@
 
       camera.attachControl(canvas, true);
 
-      // Cámara más libre y más alejada
-      camera.inertia = 0;
-      camera.angularSensibilityX = 1500;
-      camera.angularSensibilityY = 1500;
-      camera.panningSensibility = 80;
-      camera.wheelDeltaPercentage = 0.012;
-      camera.pinchDeltaPercentage = 0.012;
+      // Movimiento más tipo Sketchfab
+      camera.inertia = 0.75;
+      camera.angularSensibilityX = 2200;
+      camera.angularSensibilityY = 2200;
+      camera.panningSensibility = 90;
+      camera.wheelDeltaPercentage = 0.01;
+      camera.pinchDeltaPercentage = 0.01;
+
       camera.lowerRadiusLimit = 0.1;
       camera.upperRadiusLimit = 100000;
       camera.lowerBetaLimit = 0.001;
       camera.upperBetaLimit = Math.PI - 0.001;
+
       camera.useAutoRotationBehavior = false;
       camera.useBouncingBehavior = false;
       camera.allowUpsideDown = true;
+      camera.panningAxis = new BABYLON.Vector3(1, 1, 1);
+
+      // Zoom hacia el cursor, si la versión de Babylon lo soporta
+      if ("zoomToMouseLocation" in camera) {
+        camera.zoomToMouseLocation = true;
+      }
 
       if (camera.inputs?.attached?.pointers) {
-        camera.inputs.attached.pointers.pinchPrecision = 70;
+        camera.inputs.attached.pointers.pinchPrecision = 80;
+        camera.inputs.attached.pointers.multiTouchPanAndZoom = true;
+        camera.inputs.attached.pointers.buttons = [0, 1, 2];
       }
 
       const hemi = new BABYLON.HemisphericLight("hemi", new BABYLON.Vector3(0, 1, 0), scene);
@@ -697,12 +713,16 @@
       dir2.position = new BABYLON.Vector3(-20, 25, -20);
       dir2.intensity = 0.6;
 
-      const ground = BABYLON.MeshBuilder.CreateGround("ground", { width: 200, height: 200 }, scene);
+      const ground = BABYLON.MeshBuilder.CreateGround("ground", { width: 400, height: 400 }, scene);
       const groundMat = new BABYLON.StandardMaterial("groundMat", scene);
       groundMat.diffuseColor = new BABYLON.Color3(0.06, 0.08, 0.12);
       groundMat.specularColor = new BABYLON.Color3(0, 0, 0);
       ground.material = groundMat;
       ground.position.y = -0.02;
+
+      highlightLayer = new BABYLON.HighlightLayer("hl1", scene);
+      highlightLayer.blurHorizontalSize = 1;
+      highlightLayer.blurVerticalSize = 1;
 
       createAxesLines(3);
       setupPicking();
@@ -780,7 +800,7 @@
       canvas.addEventListener("dblclick", () => {
         const pick = scene.pick(scene.pointerX, scene.pointerY);
         if (pick?.hit && pick.pickedPoint) {
-          centerOnPoint(pick.pickedPoint);
+          focusOnPoint(pick.pickedPoint);
         } else {
           fitModel();
         }
@@ -793,23 +813,44 @@
       selectedMesh = mesh;
       selectedOriginalMaterial = mesh.material || null;
 
-      const hl = new BABYLON.StandardMaterial("selectedMat", scene);
-      hl.diffuseColor = new BABYLON.Color3(1, 0.75, 0.1);
-      hl.emissiveColor = new BABYLON.Color3(0.35, 0.2, 0);
-      hl.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
-      mesh.material = hl;
-    }
-
-    function clearSelection() {
-      if (selectedMesh) {
-        selectedMesh.material = selectedOriginalMaterial;
-        selectedMesh = null;
-        selectedOriginalMaterial = null;
+      if (highlightLayer) {
+        highlightLayer.addMesh(mesh, BABYLON.Color3.FromHexString("#f7c948"));
       }
     }
 
-    function centerOnPoint(point) {
-      camera.target = point.clone();
+    function clearSelection() {
+      if (selectedMesh && highlightLayer) {
+        highlightLayer.removeMesh(selectedMesh);
+      }
+      selectedMesh = null;
+      selectedOriginalMaterial = null;
+    }
+
+    function focusOnPoint(point) {
+      const startTarget = camera.target.clone();
+      const endTarget = point.clone();
+
+      BABYLON.Animation.CreateAndStartAnimation(
+        "focusTarget",
+        camera,
+        "target",
+        60,
+        18,
+        startTarget,
+        endTarget,
+        0
+      );
+
+      BABYLON.Animation.CreateAndStartAnimation(
+        "focusRadius",
+        camera,
+        "radius",
+        60,
+        18,
+        camera.radius,
+        Math.max(camera.radius * 0.85, modelRadius * 0.4),
+        0
+      );
     }
 
     function updateBounds() {
@@ -839,6 +880,15 @@
       camera.target = modelCenter.clone();
     }
 
+    function animateCamera(alpha, beta, radius, target = null) {
+      const finalTarget = target ? target.clone() : modelCenter.clone();
+
+      BABYLON.Animation.CreateAndStartAnimation("camAlpha", camera, "alpha", 60, 18, camera.alpha, alpha, 0);
+      BABYLON.Animation.CreateAndStartAnimation("camBeta", camera, "beta", 60, 18, camera.beta, beta, 0);
+      BABYLON.Animation.CreateAndStartAnimation("camRadius", camera, "radius", 60, 18, camera.radius, radius, 0);
+      BABYLON.Animation.CreateAndStartAnimation("camTarget", camera, "target", 60, 18, camera.target.clone(), finalTarget, 0);
+    }
+
     function goFaces(faces){
       let v = new BABYLON.Vector3(0,0,0);
 
@@ -856,32 +906,25 @@
       const alpha = Math.atan2(v.x, v.z);
       const beta = Math.acos(BABYLON.Scalar.Clamp(v.y, -1, 1));
 
-      let mult = 2.6;
-      if (faces.length === 1) mult = 2.2;
-      if (faces.length === 2) mult = 2.4;
-      if (faces.length === 3) mult = 2.6;
+      let mult = 3.0;
+      if (faces.length === 1) mult = 2.6;
+      if (faces.length === 2) mult = 2.8;
+      if (faces.length === 3) mult = 3.0;
 
-      setCamera(alpha, beta, modelRadius * mult);
-    }
-
-    function setCamera(alpha, beta, radius) {
-      camera.alpha = alpha;
-      camera.beta = beta;
-      camera.radius = radius;
-      camera.target = modelCenter.clone();
+      animateCamera(alpha, beta, modelRadius * mult);
     }
 
     function fitModel() {
       updateBounds();
-      setCamera(
+      animateCamera(
         BABYLON.Tools.ToRadians(45),
         BABYLON.Tools.ToRadians(60),
-        modelRadius * 3.0
+        modelRadius * 3.2
       );
     }
 
     function zoomFar() {
-      setCamera(camera.alpha, camera.beta, modelRadius * 7.0);
+      animateCamera(camera.alpha, camera.beta, modelRadius * 7.5, camera.target.clone());
     }
 
     function axisView(axis) {
@@ -895,10 +938,11 @@
 
     function openAR() {
       const launcher = document.getElementById("arLauncher");
+
       if (launcher && launcher.canActivateAR) {
         launcher.activateAR();
       } else {
-        alert("La realidad aumentada no está disponible en este dispositivo o navegador. Abre la página en Chrome desde un celular compatible.");
+        alert("La realidad aumentada no está disponible en este dispositivo o navegador. Ábrelo en Chrome desde un celular compatible.");
       }
     }
 
