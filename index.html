@@ -3,8 +3,10 @@
 <html lang="es">
 
 <head>
+
 <meta charset="UTF-8">
-<title>Visor de Chasis Automotriz</title>
+
+<title>Visor 3D de Chasis Automotriz</title>
 
 <script type="module"
 src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
@@ -13,40 +15,127 @@ src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
 body{
 margin:0;
+background:#020617;
 font-family:Arial;
-background:#0f172a;
 color:white;
+overflow:hidden;
+}
+
+header{
+position:absolute;
+top:0;
+width:100%;
+text-align:center;
+padding:10px;
+background:#0f172a;
+z-index:10;
 }
 
 model-viewer{
 width:100%;
 height:100vh;
-background:#020617;
+background:#000;
 }
 
-/* Cubo de vistas */
+/* cubo de orientación */
 
 .cubo{
+
 position:absolute;
-top:20px;
+
 right:20px;
+top:90px;
+
 display:grid;
-grid-template-columns:40px 40px 40px;
-grid-template-rows:40px 40px 40px;
-gap:2px;
+
+grid-template-columns:55px 55px 55px;
+grid-template-rows:55px 55px 55px;
+
+gap:3px;
+
+z-index:20;
+
 }
 
 .cubo button{
+
 background:#1e293b;
 border:none;
 color:white;
+
 cursor:pointer;
+
 font-size:12px;
+
 }
 
 .cubo button:hover{
+
 background:#334155;
+
 }
+
+/* panel inferior */
+
+.panel{
+
+position:absolute;
+
+bottom:20px;
+
+width:100%;
+
+text-align:center;
+
+}
+
+.panel button{
+
+background:#1e293b;
+border:none;
+color:white;
+
+padding:10px 14px;
+
+margin:4px;
+
+border-radius:6px;
+
+cursor:pointer;
+
+}
+
+.panel button:hover{
+
+background:#334155;
+
+}
+
+/* ejes */
+
+.ejes{
+
+position:absolute;
+
+left:20px;
+
+bottom:20px;
+
+font-size:14px;
+
+}
+
+.ejes span{
+
+display:block;
+
+margin:3px;
+
+}
+
+.x{color:red}
+.y{color:lime}
+.z{color:cyan}
 
 </style>
 
@@ -54,31 +143,70 @@ background:#334155;
 
 <body>
 
+<header>
+
+Visor 3D de Chasis Automotriz
+
+</header>
+
 <model-viewer
+
 id="visor"
+
 src="chasis.glb"
+
+alt="Modelo 3D"
 
 camera-controls
 
 orientation="-90deg 0deg 0deg"
 
-camera-orbit="35deg 70deg 12m"
+camera-target="0m 0m 0m"
 
-shadow-intensity="1"
+camera-orbit="45deg 65deg 12m"
+
+min-camera-orbit="auto 5deg 4m"
+
+max-camera-orbit="auto 175deg 40m"
+
+field-of-view="45deg"
+
+shadow-intensity="1.2"
 
 environment-image="neutral"
 
-interaction-prompt="none">
+interaction-prompt="none"
+
+ar
+ar-modes="scene-viewer webxr quick-look">
 
 </model-viewer>
 
 <div class="cubo">
 
-<button onclick="vistaSuperior()">↑</button> <button onclick="vistaSuperior()">TOP</button> <button onclick="vistaSuperior()">↑</button>
+<button onclick="superior()">TOP</button> <button onclick="superior()">TOP</button> <button onclick="superior()">TOP</button>
 
-<button onclick="vistaIzquierda()">L</button> <button onclick="centrar()">C</button> <button onclick="vistaDerecha()">R</button>
+<button onclick="izquierda()">LEFT</button> <button onclick="centrar()">C</button> <button onclick="derecha()">RIGHT</button>
 
-<button onclick="vistaFrontal()">F</button> <button onclick="vistaInferior()">B</button> <button onclick="vistaTrasera()">BK</button>
+<button onclick="frente()">FRONT</button> <button onclick="inferior()">BOTTOM</button> <button onclick="atras()">BACK</button>
+
+</div>
+
+<div class="panel">
+
+<button onclick="frente()">Vista frontal</button>
+
+<button onclick="esquina()">Vista esquina</button>
+
+<button onclick="superior()">Vista superior</button>
+
+<button onclick="centrar()">Centrar</button>
+
+</div>
+
+<div class="ejes">
+
+<span class="x">X</span> <span class="y">Y</span> <span class="z">Z</span>
 
 </div>
 
@@ -86,35 +214,56 @@ interaction-prompt="none">
 
 const visor = document.getElementById("visor")
 
-function vistaFrontal(){
-visor.cameraOrbit = "0deg 75deg 12m"
+function frente(){
+
+visor.cameraOrbit = "0deg 90deg 12m"
+
 }
 
-function vistaTrasera(){
-visor.cameraOrbit = "180deg 75deg 12m"
+function atras(){
+
+visor.cameraOrbit = "180deg 90deg 12m"
+
 }
 
-function vistaDerecha(){
-visor.cameraOrbit = "90deg 75deg 12m"
+function derecha(){
+
+visor.cameraOrbit = "90deg 90deg 12m"
+
 }
 
-function vistaIzquierda(){
-visor.cameraOrbit = "-90deg 75deg 12m"
+function izquierda(){
+
+visor.cameraOrbit = "-90deg 90deg 12m"
+
 }
 
-function vistaSuperior(){
-visor.cameraOrbit = "0deg 10deg 12m"
+function superior(){
+
+visor.cameraOrbit = "0deg 5deg 12m"
+
 }
 
-function vistaInferior(){
-visor.cameraOrbit = "0deg 170deg 12m"
+function inferior(){
+
+visor.cameraOrbit = "0deg 175deg 12m"
+
+}
+
+function esquina(){
+
+visor.cameraOrbit = "45deg 60deg 12m"
+
 }
 
 function centrar(){
-visor.cameraOrbit = "35deg 70deg 12m"
+
+visor.cameraOrbit = "45deg 65deg 12m"
+
 }
 
 </script>
 
 </body>
+
 </html>
