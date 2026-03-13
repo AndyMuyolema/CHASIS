@@ -17,8 +17,13 @@
       --muted:#9fb3d1;
       --btn:#1e293b;
       --btn-hover:#334155;
-      --cube-size:84px;
-      --half-cube:42px;
+      --cubeFront:#d8e6f7;
+      --cubeTop:#bdd3ea;
+      --cubeRight:#a9bfd8;
+      --cubeBorder:#7f96ac;
+      --cubeText:#18324f;
+      --hotspot:#d6a048;
+      --hotspotBorder:#8f6a1f;
     }
 
     *{box-sizing:border-box}
@@ -169,113 +174,166 @@
       backdrop-filter:blur(8px);
     }
 
-    .cube-widget{
+    .navcube-widget{
       position:absolute;
       top:78px;
       right:14px;
       z-index:35;
-      width:220px;
+      width:240px;
       height:270px;
       padding:10px;
       border-radius:14px;
       background:var(--panel);
-      user-select:none;
       backdrop-filter:blur(8px);
+      user-select:none;
     }
 
-    .cube-title{
+    .navcube-title{
       text-align:center;
       font-size:12px;
       color:var(--muted);
       margin-bottom:8px;
     }
 
-    .cube-area{
+    .navcube{
       position:relative;
-      width:100%;
-      height:195px;
-      overflow:visible;
+      width:170px;
+      height:170px;
+      margin:0 auto;
     }
 
-    .cube-stage{
+    /* Caras del cubo estilo Inventor */
+    .face-center{
       position:absolute;
-      inset:0;
-      perspective:900px;
+      left:50px;
+      top:54px;
+      width:66px;
+      height:66px;
+      background:var(--cubeFront);
+      border:1px solid var(--cubeBorder);
+      box-shadow:0 4px 8px rgba(0,0,0,.18);
       display:flex;
       align-items:center;
       justify-content:center;
-      pointer-events:none;
-    }
-
-    .cube{
-      position:relative;
-      width:var(--cube-size);
-      height:var(--cube-size);
-      transform-style:preserve-3d;
-      transform:rotateX(-22deg) rotateY(35deg);
-      transition:transform .08s linear;
-      pointer-events:none;
-    }
-
-    .face{
-      position:absolute;
-      width:var(--cube-size);
-      height:var(--cube-size);
-      display:flex;
-      align-items:center;
-      justify-content:center;
+      color:var(--cubeText);
       font-weight:700;
-      font-size:12px;
-      color:#fff;
-      border:1px solid rgba(255,255,255,.18);
-      box-shadow:inset 0 0 18px rgba(255,255,255,.07);
-      pointer-events:auto;
+      font-size:14px;
+      text-transform:uppercase;
       cursor:pointer;
-      backface-visibility:visible;
     }
 
-    .front { background:rgba(59,130,246,.60); transform:translateZ(var(--half-cube)); }
-    .back  { background:rgba(148,163,184,.38); transform:rotateY(180deg) translateZ(var(--half-cube)); }
-    .right { background:rgba(34,197,94,.50); transform:rotateY(90deg) translateZ(var(--half-cube)); }
-    .left  { background:rgba(244,63,94,.50); transform:rotateY(-90deg) translateZ(var(--half-cube)); }
-    .top   { background:rgba(14,165,233,.55); transform:rotateX(90deg) translateZ(var(--half-cube)); }
-    .bottom{ background:rgba(168,85,247,.50); transform:rotateX(-90deg) translateZ(var(--half-cube)); }
-
-    .corner3d{
+    .face-top{
       position:absolute;
-      width:14px;
-      height:14px;
-      border-radius:50%;
-      background:#fff;
-      border:2px solid #111827;
-      box-shadow:0 0 0 1px rgba(255,255,255,.25);
+      left:61px;
+      top:37px;
+      width:66px;
+      height:18px;
+      background:var(--cubeTop);
+      border:1px solid var(--cubeBorder);
+      transform:skewX(-35deg);
+      transform-origin:left bottom;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:var(--cubeText);
+      font-size:10px;
+      font-weight:700;
+      text-transform:uppercase;
       cursor:pointer;
-      pointer-events:auto;
-      transform-style:preserve-3d;
-      margin-left:-7px;
-      margin-top:-7px;
     }
 
-    .corner3d:hover{
-      background:#60a5fa;
-      transform:scale(1.15);
+    .face-right{
+      position:absolute;
+      left:116px;
+      top:48px;
+      width:20px;
+      height:66px;
+      background:var(--cubeRight);
+      border:1px solid var(--cubeBorder);
+      transform:skewY(-35deg);
+      transform-origin:left top;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:var(--cubeText);
+      font-size:10px;
+      font-weight:700;
+      writing-mode:vertical-rl;
+      text-transform:uppercase;
+      cursor:pointer;
     }
 
-    .c-tfr{ transform:translate3d(42px,-42px,42px); }
-    .c-tfl{ transform:translate3d(-42px,-42px,42px); }
-    .c-tbr{ transform:translate3d(42px,-42px,-42px); }
-    .c-tbl{ transform:translate3d(-42px,-42px,-42px); }
+    /* Hotspots tipo Inventor */
+    .hot{
+      position:absolute;
+      background:transparent;
+      border:none;
+      padding:0;
+      margin:0;
+      cursor:pointer;
+    }
 
-    .c-bfr{ transform:translate3d(42px,42px,42px); }
-    .c-bfl{ transform:translate3d(-42px,42px,42px); }
-    .c-bbr{ transform:translate3d(42px,42px,-42px); }
-    .c-bbl{ transform:translate3d(-42px,42px,-42px); }
+    .tri{
+      width:0;
+      height:0;
+      display:block;
+      border-style:solid;
+      filter:drop-shadow(0 1px 1px rgba(0,0,0,.35));
+    }
 
-    .cube-help{
+    .hot-top{ left:77px; top:18px; width:18px; height:18px; }
+    .hot-top .tri{
+      border-width:0 9px 12px 9px;
+      border-color:transparent transparent var(--hotspot) transparent;
+    }
+
+    .hot-bottom{ left:77px; top:124px; width:18px; height:18px; }
+    .hot-bottom .tri{
+      border-width:12px 9px 0 9px;
+      border-color:var(--hotspot) transparent transparent transparent;
+    }
+
+    .hot-left{ left:20px; top:78px; width:18px; height:18px; }
+    .hot-left .tri{
+      border-width:9px 12px 9px 0;
+      border-color:transparent var(--hotspot) transparent transparent;
+    }
+
+    .hot-right{ left:132px; top:78px; width:18px; height:18px; }
+    .hot-right .tri{
+      border-width:9px 0 9px 12px;
+      border-color:transparent transparent transparent var(--hotspot);
+    }
+
+    .hot-corner{
+      width:16px;
+      height:16px;
+      border-radius:50%;
+      background:var(--hotspot);
+      border:1px solid var(--hotspotBorder);
+      box-shadow:0 1px 2px rgba(0,0,0,.35);
+    }
+
+    .hot-tl{ left:32px; top:28px; }
+    .hot-tr{ left:122px; top:28px; }
+    .hot-bl{ left:32px; top:118px; }
+    .hot-br{ left:122px; top:118px; }
+
+    .hot:hover .tri{
+      filter:brightness(1.15) drop-shadow(0 1px 1px rgba(0,0,0,.35));
+    }
+
+    .hot-corner:hover{
+      filter:brightness(1.1);
+      transform:scale(1.08);
+    }
+
+    .navcube-help{
       text-align:center;
       font-size:11px;
       color:var(--muted);
-      margin-top:8px;
+      margin-top:10px;
+      line-height:1.35;
     }
 
     .loader{
@@ -294,14 +352,17 @@
       .brand h1{ font-size:17px; }
       .brand img{ width:38px; height:38px; }
 
-      .cube-widget{
-        width:190px;
-        height:245px;
+      .navcube-widget{
+        width:210px;
+        height:250px;
         top:72px;
         right:10px;
       }
 
-      .cube-area{ height:170px; }
+      .navcube{
+        transform:scale(.9);
+        transform-origin:top center;
+      }
 
       .axes{
         left:10px;
@@ -325,40 +386,37 @@
         <img src="logo-ups.png" alt="Logo UPS">
         <div>
           <h1>Visor 3D Profesional de Chasis</h1>
-          <p>Babylon.js · vértices reales en el cubo · doble clic · selección</p>
+          <p>Babylon.js · cubo tipo Inventor · aristas y esquinas funcionales</p>
         </div>
       </div>
     </div>
 
     <canvas id="renderCanvas" tabindex="1"></canvas>
 
-    <div class="cube-widget">
-      <div class="cube-title">Cubo 3D de navegación</div>
+    <div class="navcube-widget">
+      <div class="navcube-title">Cubo 3D de navegación</div>
 
-      <div class="cube-area" id="cubeDragArea">
-        <div class="cube-stage">
-          <div class="cube" id="navCube">
-            <div class="face front" onclick="setFace('front')">FRONT</div>
-            <div class="face back" onclick="setFace('back')">BACK</div>
-            <div class="face right" onclick="setFace('right')">RIGHT</div>
-            <div class="face left" onclick="setFace('left')">LEFT</div>
-            <div class="face top" onclick="setFace('top')">TOP</div>
-            <div class="face bottom" onclick="setFace('bottom')">BOTTOM</div>
+      <div class="navcube" id="navcube">
+        <div class="face-top" id="faceTopLabel"></div>
+        <div class="face-right" id="faceRightLabel"></div>
+        <div class="face-center" id="faceCenterLabel"></div>
 
-            <div class="corner3d c-tfr" onclick="setCorner('tfr')"></div>
-            <div class="corner3d c-tfl" onclick="setCorner('tfl')"></div>
-            <div class="corner3d c-tbr" onclick="setCorner('tbr')"></div>
-            <div class="corner3d c-tbl" onclick="setCorner('tbl')"></div>
+        <button class="hot hot-top" id="hotTop" title="Superior"><span class="tri"></span></button>
+        <button class="hot hot-bottom" id="hotBottom" title="Inferior"><span class="tri"></span></button>
+        <button class="hot hot-left" id="hotLeft" title="Izquierda"><span class="tri"></span></button>
+        <button class="hot hot-right" id="hotRight" title="Derecha"><span class="tri"></span></button>
 
-            <div class="corner3d c-bfr" onclick="setCorner('bfr')"></div>
-            <div class="corner3d c-bfl" onclick="setCorner('bfl')"></div>
-            <div class="corner3d c-bbr" onclick="setCorner('bbr')"></div>
-            <div class="corner3d c-bbl" onclick="setCorner('bbl')"></div>
-          </div>
-        </div>
+        <button class="hot hot-corner hot-tl" id="hotTL" title="Esquina superior izquierda"></button>
+        <button class="hot hot-corner hot-tr" id="hotTR" title="Esquina superior derecha"></button>
+        <button class="hot hot-corner hot-bl" id="hotBL" title="Esquina inferior izquierda"></button>
+        <button class="hot hot-corner hot-br" id="hotBR" title="Esquina inferior derecha"></button>
       </div>
 
-      <div class="cube-help">Toca caras o vértices reales del cubo</div>
+      <div class="navcube-help">
+        Cara central = vista actual<br>
+        Flechas = combinación de 2 caras<br>
+        Esquinas = combinación de 3 caras
+      </div>
     </div>
 
     <div class="axes">
@@ -372,11 +430,11 @@
     </div>
 
     <div class="panel">
-      <button onclick="setFace('front')">Vista frontal</button>
-      <button onclick="setFace('left')">Vista izquierda</button>
-      <button onclick="setFace('right')">Vista derecha</button>
-      <button onclick="setFace('top')">Vista superior</button>
-      <button onclick="setCorner('tfr')">Vista esquina</button>
+      <button onclick="goFaces(['front'])">Vista frontal</button>
+      <button onclick="goFaces(['left'])">Vista izquierda</button>
+      <button onclick="goFaces(['right'])">Vista derecha</button>
+      <button onclick="goFaces(['top'])">Vista superior</button>
+      <button onclick="goFaces(['front','right','top'])">Vista esquina</button>
       <button onclick="fitModel()">Centrar</button>
       <button onclick="zoomFar()">Alejar más</button>
       <button onclick="clearSelection()">Quitar selección</button>
@@ -402,12 +460,142 @@
     let selectedMesh = null;
     let selectedOriginalMaterial = null;
 
-    const navCube = document.getElementById("navCube");
-    const cubeDragArea = document.getElementById("cubeDragArea");
+    const faceCenterLabel = document.getElementById("faceCenterLabel");
+    const faceTopLabel = document.getElementById("faceTopLabel");
+    const faceRightLabel = document.getElementById("faceRightLabel");
 
-    let cubeDragging = false;
-    let lastX = 0;
-    let lastY = 0;
+    const hotTop = document.getElementById("hotTop");
+    const hotBottom = document.getElementById("hotBottom");
+    const hotLeft = document.getElementById("hotLeft");
+    const hotRight = document.getElementById("hotRight");
+    const hotTL = document.getElementById("hotTL");
+    const hotTR = document.getElementById("hotTR");
+    const hotBL = document.getElementById("hotBL");
+    const hotBR = document.getElementById("hotBR");
+
+    const FACE_VECTORS = {
+      front:  new BABYLON.Vector3(0, 0, 1),
+      back:   new BABYLON.Vector3(0, 0, -1),
+      right:  new BABYLON.Vector3(1, 0, 0),
+      left:   new BABYLON.Vector3(-1, 0, 0),
+      top:    new BABYLON.Vector3(0, 1, 0),
+      bottom: new BABYLON.Vector3(0, -1, 0)
+    };
+
+    const NAV_RULES = {
+      front: {
+        top:    ["front","top"],
+        bottom: ["front","bottom"],
+        left:   ["front","left"],
+        right:  ["front","right"],
+        tl:     ["front","left","top"],
+        tr:     ["front","right","top"],
+        bl:     ["front","left","bottom"],
+        br:     ["front","right","bottom"],
+        topFace: "top",
+        rightFace: "right"
+      },
+      right: {
+        top:    ["right","top"],
+        bottom: ["right","bottom"],
+        left:   ["right","front"],
+        right:  ["right","back"],
+        tl:     ["right","front","top"],
+        tr:     ["right","back","top"],
+        bl:     ["right","front","bottom"],
+        br:     ["right","back","bottom"],
+        topFace: "top",
+        rightFace: "back"
+      },
+      back: {
+        top:    ["back","top"],
+        bottom: ["back","bottom"],
+        left:   ["back","right"],
+        right:  ["back","left"],
+        tl:     ["back","right","top"],
+        tr:     ["back","left","top"],
+        bl:     ["back","right","bottom"],
+        br:     ["back","left","bottom"],
+        topFace: "top",
+        rightFace: "left"
+      },
+      left: {
+        top:    ["left","top"],
+        bottom: ["left","bottom"],
+        left:   ["left","back"],
+        right:  ["left","front"],
+        tl:     ["left","back","top"],
+        tr:     ["left","front","top"],
+        bl:     ["left","back","bottom"],
+        br:     ["left","front","bottom"],
+        topFace: "top",
+        rightFace: "front"
+      },
+      top: {
+        top:    ["top","back"],
+        bottom: ["top","front"],
+        left:   ["top","left"],
+        right:  ["top","right"],
+        tl:     ["top","back","left"],
+        tr:     ["top","back","right"],
+        bl:     ["top","front","left"],
+        br:     ["top","front","right"],
+        topFace: "back",
+        rightFace: "right"
+      },
+      bottom: {
+        top:    ["bottom","front"],
+        bottom: ["bottom","back"],
+        left:   ["bottom","left"],
+        right:  ["bottom","right"],
+        tl:     ["bottom","front","left"],
+        tr:     ["bottom","front","right"],
+        bl:     ["bottom","back","left"],
+        br:     ["bottom","back","right"],
+        topFace: "front",
+        rightFace: "right"
+      }
+    };
+
+    function labelOf(face){
+      return face.toUpperCase();
+    }
+
+    function dominantFace(){
+      const betaDeg = BABYLON.Tools.ToDegrees(camera.beta);
+      let alphaDeg = BABYLON.Tools.ToDegrees(camera.alpha);
+      alphaDeg = ((alphaDeg % 360) + 360) % 360;
+
+      if (betaDeg < 35) return "top";
+      if (betaDeg > 145) return "bottom";
+
+      if (alphaDeg >= 315 || alphaDeg < 45) return "front";
+      if (alphaDeg >= 45 && alphaDeg < 135) return "right";
+      if (alphaDeg >= 135 && alphaDeg < 225) return "back";
+      return "left";
+    }
+
+    function refreshNavCube(){
+      const main = dominantFace();
+      const rule = NAV_RULES[main];
+
+      faceCenterLabel.textContent = labelOf(main);
+      faceTopLabel.textContent = labelOf(rule.topFace);
+      faceRightLabel.textContent = labelOf(rule.rightFace);
+
+      faceCenterLabel.onclick = () => goFaces([main]);
+      faceTopLabel.onclick = () => goFaces([rule.topFace]);
+      faceRightLabel.onclick = () => goFaces([rule.rightFace]);
+
+      hotTop.onclick = () => goFaces(rule.top);
+      hotBottom.onclick = () => goFaces(rule.bottom);
+      hotLeft.onclick = () => goFaces(rule.left);
+      hotRight.onclick = () => goFaces(rule.right);
+      hotTL.onclick = () => goFaces(rule.tl);
+      hotTR.onclick = () => goFaces(rule.tr);
+      hotBL.onclick = () => goFaces(rule.bl);
+      hotBR.onclick = () => goFaces(rule.br);
+    }
 
     async function createScene() {
       scene = new BABYLON.Scene(engine);
@@ -489,6 +677,7 @@
         scene.executeWhenReady(() => {
           updateBounds();
           fitModel();
+          refreshNavCube();
           document.getElementById("loader").style.display = "none";
         });
       } catch (e) {
@@ -497,7 +686,7 @@
       }
 
       scene.onBeforeRenderObservable.add(() => {
-        syncCubeWithCamera();
+        refreshNavCube();
       });
 
       return scene;
@@ -595,6 +784,31 @@
       camera.target = modelCenter.clone();
     }
 
+    function goFaces(faces){
+      let v = new BABYLON.Vector3(0,0,0);
+
+      faces.forEach(f => {
+        v = v.add(FACE_VECTORS[f]);
+      });
+
+      if (v.length() === 0) {
+        fitModel();
+        return;
+      }
+
+      v.normalize();
+
+      const alpha = Math.atan2(v.x, v.z);
+      const beta = Math.acos(BABYLON.Scalar.Clamp(v.y, -1, 1));
+
+      let mult = 2.2;
+      if (faces.length === 1) mult = 1.8;
+      if (faces.length === 2) mult = 2.0;
+      if (faces.length === 3) mult = 2.2;
+
+      setCamera(alpha, beta, modelRadius * mult);
+    }
+
     function setCamera(alpha, beta, radius) {
       camera.alpha = alpha;
       camera.beta = beta;
@@ -615,81 +829,14 @@
       setCamera(camera.alpha, camera.beta, modelRadius * 5.2);
     }
 
-    function setFace(face) {
-      if (face === "front")  setCamera(BABYLON.Tools.ToRadians(0),   BABYLON.Tools.ToRadians(90), modelRadius * 1.8);
-      if (face === "back")   setCamera(BABYLON.Tools.ToRadians(180), BABYLON.Tools.ToRadians(90), modelRadius * 1.8);
-      if (face === "left")   setCamera(BABYLON.Tools.ToRadians(-90), BABYLON.Tools.ToRadians(90), modelRadius * 1.8);
-      if (face === "right")  setCamera(BABYLON.Tools.ToRadians(90),  BABYLON.Tools.ToRadians(90), modelRadius * 1.8);
-      if (face === "top")    setCamera(BABYLON.Tools.ToRadians(0),   BABYLON.Tools.ToRadians(0.03), modelRadius * 2.2);
-      if (face === "bottom") setCamera(BABYLON.Tools.ToRadians(0),   BABYLON.Tools.ToRadians(Math.PI - 0.03), modelRadius * 2.2);
-    }
-
-    function setCorner(corner) {
-      const map = {
-        tfl: [-35,  50],
-        tfr: [ 35,  50],
-        tbl: [-145, 50],
-        tbr: [145,  50],
-        bfl: [-35, 130],
-        bfr: [ 35, 130],
-        bbl: [-145,130],
-        bbr: [145, 130]
-      };
-
-      const v = map[corner];
-      if (!v) return;
-
-      setCamera(
-        BABYLON.Tools.ToRadians(v[0]),
-        BABYLON.Tools.ToRadians(v[1]),
-        modelRadius * 2.0
-      );
-    }
-
     function axisView(axis) {
-      if (axis === "x")  setFace("right");
-      if (axis === "-x") setFace("left");
-      if (axis === "y")  setFace("top");
-      if (axis === "-y") setFace("bottom");
-      if (axis === "z")  setFace("front");
-      if (axis === "-z") setFace("back");
+      if (axis === "x")  goFaces(["right"]);
+      if (axis === "-x") goFaces(["left"]);
+      if (axis === "y")  goFaces(["top"]);
+      if (axis === "-y") goFaces(["bottom"]);
+      if (axis === "z")  goFaces(["front"]);
+      if (axis === "-z") goFaces(["back"]);
     }
-
-    function syncCubeWithCamera() {
-      const rx = BABYLON.Tools.ToDegrees(camera.beta) - 90;
-      const ry = -BABYLON.Tools.ToDegrees(camera.alpha);
-      navCube.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
-    }
-
-    cubeDragArea.addEventListener("pointerdown", (e) => {
-      cubeDragging = true;
-      lastX = e.clientX;
-      lastY = e.clientY;
-      cubeDragArea.setPointerCapture(e.pointerId);
-    });
-
-    cubeDragArea.addEventListener("pointermove", (e) => {
-      if (!cubeDragging) return;
-
-      const dx = e.clientX - lastX;
-      const dy = e.clientY - lastY;
-      lastX = e.clientX;
-      lastY = e.clientY;
-
-      camera.alpha -= dx * 0.0045;
-      camera.beta  += dy * 0.0045;
-
-      if (camera.beta < 0.001) camera.beta = 0.001;
-      if (camera.beta > Math.PI - 0.001) camera.beta = Math.PI - 0.001;
-    });
-
-    function stopCubeDrag() {
-      cubeDragging = false;
-    }
-
-    cubeDragArea.addEventListener("pointerup", stopCubeDrag);
-    cubeDragArea.addEventListener("pointercancel", stopCubeDrag);
-    cubeDragArea.addEventListener("pointerleave", stopCubeDrag);
 
     createScene().then((scene) => {
       engine.runRenderLoop(() => {
